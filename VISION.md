@@ -38,7 +38,6 @@ Canonical security policy and reporting:
 
 - [`SECURITY.md`](SECURITY.md)
 
-
 SMS samples can expose phone numbers and Twilio credentials. Keep all secrets
 and real recipient/sender numbers out of git and avoid logging sensitive values.
 
