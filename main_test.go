@@ -52,6 +52,25 @@ func TestLoadConfigRequiresCredentialsWhenSending(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsMalformedPhoneNumbers(t *testing.T) {
+	_, err := loadConfig(mapLookup(map[string]string{
+		"DRY_RUN":             "1",
+		"TO_PHONE_NUMBER":     "5558675310",
+		"TWILIO_PHONE_NUMBER": "+1555INVALID",
+	}))
+
+	if err == nil {
+		t.Fatal("expected invalid phone number error")
+	}
+	errorText := err.Error()
+	if !strings.Contains(errorText, "TO_PHONE_NUMBER") || !strings.Contains(errorText, "TWILIO_PHONE_NUMBER") {
+		t.Fatalf("expected both phone number names in error, got %q", err)
+	}
+	if strings.Contains(errorText, "5558675310") || strings.Contains(errorText, "+1555INVALID") {
+		t.Fatalf("error should not echo phone number values, got %q", err)
+	}
+}
+
 func TestLoadConfigReadsMessageBodyAndCredentials(t *testing.T) {
 	config, err := loadConfig(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     " +15558675310 ",
@@ -152,6 +171,22 @@ func TestTruthy(t *testing.T) {
 	for _, value := range falseValues {
 		if truthy(value) {
 			t.Fatalf("expected %q to be false", value)
+		}
+	}
+}
+
+func TestValidE164PhoneNumber(t *testing.T) {
+	valid := []string{"+15558675310", "+442071838750", "+12025550123"}
+	for _, value := range valid {
+		if !validE164PhoneNumber(value) {
+			t.Fatalf("expected %q to be valid", value)
+		}
+	}
+
+	invalid := []string{"", "+", "+0", "15558675310", "+1555INVALID", "+1555 867 5310", "+1234567890123456"}
+	for _, value := range invalid {
+		if validE164PhoneNumber(value) {
+			t.Fatalf("expected %q to be invalid", value)
 		}
 	}
 }

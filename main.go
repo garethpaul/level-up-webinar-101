@@ -80,7 +80,33 @@ func loadConfig(lookup func(string) string) (smsConfig, error) {
 		return smsConfig{}, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
 	}
 
+	var invalid []string
+	if !validE164PhoneNumber(config.ToPhoneNumber) {
+		invalid = append(invalid, "TO_PHONE_NUMBER")
+	}
+	if !validE164PhoneNumber(config.FromPhoneNumber) {
+		invalid = append(invalid, "TWILIO_PHONE_NUMBER")
+	}
+	if len(invalid) > 0 {
+		return smsConfig{}, fmt.Errorf("invalid phone number environment variables: %s", strings.Join(invalid, ", "))
+	}
+
 	return config, nil
+}
+
+func validE164PhoneNumber(value string) bool {
+	if len(value) < 3 || len(value) > 16 || value[0] != '+' {
+		return false
+	}
+	if value[1] < '1' || value[1] > '9' {
+		return false
+	}
+	for _, digit := range value[2:] {
+		if digit < '0' || digit > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func truthy(value string) bool {

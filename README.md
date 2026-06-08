@@ -50,6 +50,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 Set the required environment variables before sending a real SMS. Populate
 `TWILIO_AUTH_TOKEN` from your local secret store or shell history-safe prompt.
+Phone numbers should use E.164 format, such as `+15558675310`.
 
 ```bash
 export TO_PHONE_NUMBER="+15558675310"
@@ -73,7 +74,7 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 ## Testing and Verification
 
 - `make check` verifies Go formatting, module checksums, tests, and a local build.
-- `go test ./...` covers missing environment variables, dry-run behavior, custom message body handling, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
+- `go test ./...` covers missing environment variables, dry-run behavior, E.164-style phone number validation, custom message body handling, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -81,6 +82,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 - Required for real sends: `TO_PHONE_NUMBER`, `TWILIO_PHONE_NUMBER`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`.
 - Required for `DRY_RUN=1`: `TO_PHONE_NUMBER` and `TWILIO_PHONE_NUMBER`.
+- Phone number values must be E.164-style strings beginning with `+` followed by digits.
 - Keep Twilio credentials and real phone numbers in local environment variables or secret stores only.
 
 ## Security and Privacy Notes
