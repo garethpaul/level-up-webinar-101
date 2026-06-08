@@ -43,3 +43,6 @@ and real recipient/sender numbers out of git and avoid logging sensitive values.
 - Bulk messaging features
 - Logging of sensitive messaging configuration
 - Broad app scaffolding that obscures the demo
+
+This list is a roadmap guardrail, not a permanent rule.
+Strong user demand and strong technical rationale can change it.
