@@ -12,26 +12,32 @@ SDK and environment-based configuration. Project context lives in
 
 The goal is to keep the sample small, safe, and easy to run for demos.
 
+Current baseline: the sample has Go module metadata, configuration validation,
+`DRY_RUN` support for no-send demos, and `make check` coverage for formatting
+and unit tests.
+
 The current focus is:
 
 Priority:
 
 - Preserve the simple Twilio SMS send flow
 - Keep phone numbers and Twilio credentials in environment variables
+- Keep `DRY_RUN` available for webinar setup checks that should not send SMS
+- Keep `make check` green before pushing changes
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers
 - Maintain security policy for the sample
 
 Next priorities:
 
-- Add README setup, required environment variables, and run commands
-- Add input validation for missing phone numbers and credentials
-- Add tests or a dry-run path that does not send real SMS
 - Document expected Twilio account prerequisites
+- Add an injectable message sender if send behavior needs unit tests without Twilio
+- Consider examples for Twilio trial-account verification limits
 
 Contribution rules:
 
 - One PR = one focused Twilio, Go, test, or documentation change.
 - Do not commit secrets or real phone numbers.
+- Run `make check` before pushing.
 - Keep the webinar sample easy to understand.
 - Prefer dry-run/testing improvements before adding broader messaging features.
 

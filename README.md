@@ -11,52 +11,85 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 
 ## Repository Contents
 
+- `.gitignore` - local secret, log, coverage, and binary ignores
+- `CHANGES.md` - recent maintenance changes
+- `Makefile` - local verification entry points
 - `README.md` - project overview and local usage notes
+- `go.mod` - Go module and Twilio SDK dependency metadata
+- `go.sum` - Go dependency checksums
+- `main.go` - Twilio SMS sample entry point
+- `main_test.go` - configuration and dry-run unit tests
 - `SECURITY.md` - security reporting and disclosure guidance
 - `VISION.md` - project direction and maintenance guardrails
 
 Additional scan context:
 
 - Source directories: no top-level source directories detected
-- Dependency and build manifests: none detected
-- Entry points or build surfaces: main.go
-- Test-looking files: no obvious test files detected
+- Dependency and build manifests: go.mod, go.sum
+- Entry points or build surfaces: `make check`, main.go
+- Test-looking files: main_test.go
 
 ## Getting Started
 
 ### Prerequisites
 
 - Git
+- Go 1.25 or newer
 
 ### Setup
 
 ```bash
 git clone https://github.com/garethpaul/level-up-webinar-101.git
 cd level-up-webinar-101
+make check
 ```
 
 The setup commands above are derived from repository files. Legacy mobile, Python, or JavaScript samples may require older SDKs or package versions than a modern workstation uses by default.
 
 ## Running or Using the Project
 
-- Run `go run .` or build the module with `go build ./...`.
+Set the required environment variables before sending a real SMS:
+
+```bash
+export TO_PHONE_NUMBER="+15558675310"
+export TWILIO_PHONE_NUMBER="+15558675309"
+export TWILIO_ACCOUNT_SID="AC..."
+export TWILIO_AUTH_TOKEN="..."
+go run .
+```
+
+Optional environment variables:
+
+- `MESSAGE_BODY` overrides the default `Hello from Golang!` body.
+- `DRY_RUN=1` validates phone-number configuration without requiring Twilio credentials or sending SMS.
+
+For a no-send setup check:
+
+```bash
+TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go run .
+```
 
 ## Testing and Verification
 
-- No dedicated automated test command was identified from the checked-in files. Verify changes by running the relevant build or manually exercising the sample.
+- `make check` verifies Go formatting and runs `go test ./...`.
+- `go test ./...` covers missing environment variables, dry-run behavior, custom message body handling, and whitespace trimming.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
 ## Configuration and Secrets
 
-- Detected references to Twilio. Keep API keys, OAuth credentials, tokens, and account-specific values in local configuration only.
+- Required for real sends: `TO_PHONE_NUMBER`, `TWILIO_PHONE_NUMBER`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`.
+- Required for `DRY_RUN=1`: `TO_PHONE_NUMBER` and `TWILIO_PHONE_NUMBER`.
+- Keep Twilio credentials and real phone numbers in local environment variables or secret stores only.
 
 ## Security and Privacy Notes
 
 - Review changes touching external API calls or credential-adjacent configuration; examples from the scan include main.go.
+- Do not log Twilio auth tokens, account SIDs, or real phone numbers. The dry-run path confirms configuration without printing sensitive values.
 
 ## Maintenance Notes
 
+- Run `make check` before pushing Go, dependency, README, or security-policy changes.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 
