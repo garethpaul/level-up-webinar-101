@@ -1,5 +1,8 @@
 # level-up-webinar-101
 
+<!-- README-OVERVIEW-IMAGE -->
+![Project overview](docs/readme-overview.svg)
+
 ## Overview
 
 `garethpaul/level-up-webinar-101` is a Go project. Level-Up-Webinar 101
@@ -66,4 +69,3 @@ Keep changes small and tied to the project that is already present in this repos
 Prior README summary:
 
 > level-up-webinar-101 <!-- README-OVERVIEW-IMAGE --> Level-Up-Webinar 101
-
