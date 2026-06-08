@@ -68,4 +68,4 @@ Keep changes small and tied to the project that is already present in this repos
 
 Prior README summary:
 
-> level-up-webinar-101 <!-- README-OVERVIEW-IMAGE --> Level-Up-Webinar 101
+> level-up-webinar-101 Level-Up-Webinar 101
