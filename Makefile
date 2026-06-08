@@ -1,8 +1,10 @@
 .PHONY: check fmt
 
 check:
-	test -z "$$(gofmt -l main.go main_test.go)"
+	test -z "$$(gofmt -l *.go)"
+	go mod verify
 	go test ./...
+	go build ./...
 
 fmt:
-	gofmt -w main.go main_test.go
+	gofmt -w *.go

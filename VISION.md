@@ -14,7 +14,7 @@ The goal is to keep the sample small, safe, and easy to run for demos.
 
 Current baseline: the sample has Go module metadata, configuration validation,
 `DRY_RUN` support for no-send demos, and `make check` coverage for formatting
-and unit tests.
+and unit tests, module verification, and a local build.
 
 The current focus is:
 
@@ -30,7 +30,7 @@ Priority:
 Next priorities:
 
 - Document expected Twilio account prerequisites
-- Add an injectable message sender if send behavior needs unit tests without Twilio
+- Add a fake HTTP client if Twilio request payloads need deeper unit coverage
 - Consider examples for Twilio trial-account verification limits
 
 Contribution rules:

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -21,23 +22,29 @@ type smsConfig struct {
 }
 
 func main() {
-	config, err := loadConfig(os.Getenv)
-	if err != nil {
+	if err := run(os.Getenv, os.Stdout, sendSMS); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func run(lookup func(string) string, output io.Writer, send func(smsConfig) error) error {
+	config, err := loadConfig(lookup)
+	if err != nil {
+		return err
+	}
 
 	if config.DryRun {
-		fmt.Println("Dry run: SMS configuration validated; no message sent.")
-		return
+		fmt.Fprintln(output, "Dry run: SMS configuration validated; no message sent.")
+		return nil
 	}
 
-	if err := sendSMS(config); err != nil {
-		fmt.Fprintf(os.Stderr, "send SMS: %v\n", err)
-		os.Exit(1)
+	if err := send(config); err != nil {
+		return fmt.Errorf("send SMS: %w", err)
 	}
 
-	fmt.Println("SMS sent successfully!")
+	fmt.Fprintln(output, "SMS sent successfully!")
+	return nil
 }
 
 func loadConfig(lookup func(string) string) (smsConfig, error) {
@@ -78,7 +85,7 @@ func loadConfig(lookup func(string) string) (smsConfig, error) {
 
 func truthy(value string) bool {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "1", "true", "t", "yes", "y":
+	case "1", "true", "t", "yes", "y", "on":
 		return true
 	default:
 		return false
@@ -87,8 +94,9 @@ func truthy(value string) bool {
 
 func sendSMS(config smsConfig) error {
 	client := twilio.NewRestClientWithParams(twilio.ClientParams{
-		Username: config.AccountSID,
-		Password: config.AuthToken,
+		Username:   config.AccountSID,
+		Password:   config.AuthToken,
+		AccountSid: config.AccountSID,
 	})
 
 	params := &openapi.CreateMessageParams{}

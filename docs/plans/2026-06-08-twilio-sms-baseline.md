@@ -1,5 +1,7 @@
 # Twilio SMS Baseline Plan
 
+status: completed
+
 ## Context
 
 This repository is a compact Go webinar sample that sends an SMS with the
@@ -26,8 +28,10 @@ sample depends on.
 - Added a dry-run branch that validates required non-secret inputs and exits
   without sending SMS or printing phone numbers/secrets.
 - Added unit tests for missing values, dry-run behavior, custom message body,
-  trimming, and truthy dry-run values.
-- Added `make check` to run formatting checks and `go test ./...`.
+  trimming, truthy dry-run values, successful sends, and sender failures without
+  contacting Twilio.
+- Added `make check` to run formatting checks, module verification, unit tests,
+  and a local build.
 
 ## Verification
 

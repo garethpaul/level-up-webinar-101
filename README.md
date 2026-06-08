@@ -34,7 +34,7 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Go 1.25 or newer
+- Go 1.24 or newer
 
 ### Setup
 
@@ -71,8 +71,8 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 
 ## Testing and Verification
 
-- `make check` verifies Go formatting and runs `go test ./...`.
-- `go test ./...` covers missing environment variables, dry-run behavior, custom message body handling, and whitespace trimming.
+- `make check` verifies Go formatting, module checksums, tests, and a local build.
+- `go test ./...` covers missing environment variables, dry-run behavior, custom message body handling, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

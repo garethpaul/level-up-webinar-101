@@ -1,6 +1,6 @@
 module github.com/garethpaul/level-up-webinar-101
 
-go 1.25.3
+go 1.24
 
 require github.com/twilio/twilio-go v1.30.9
 

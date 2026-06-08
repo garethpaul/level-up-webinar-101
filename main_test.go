@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -73,8 +75,73 @@ func TestLoadConfigReadsMessageBodyAndCredentials(t *testing.T) {
 	}
 }
 
+func TestRunDryRunSkipsSender(t *testing.T) {
+	var output bytes.Buffer
+	called := false
+
+	err := run(mapLookup(map[string]string{
+		"DRY_RUN":             "1",
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+	}), &output, func(smsConfig) error {
+		called = true
+		return nil
+	})
+
+	if err != nil {
+		t.Fatalf("expected dry run to succeed, got %v", err)
+	}
+	if called {
+		t.Fatal("dry run should not call sender")
+	}
+	if !strings.Contains(output.String(), "Dry run") {
+		t.Fatalf("expected dry-run output, got %q", output.String())
+	}
+}
+
+func TestRunSendsConfiguredMessage(t *testing.T) {
+	var output bytes.Buffer
+	var sent smsConfig
+
+	err := run(mapLookup(map[string]string{
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  "AC123",
+		"TWILIO_AUTH_TOKEN":   "token",
+		"MESSAGE_BODY":        "Webinar reminder",
+	}), &output, func(config smsConfig) error {
+		sent = config
+		return nil
+	})
+
+	if err != nil {
+		t.Fatalf("expected send to succeed, got %v", err)
+	}
+	if sent.MessageBody != "Webinar reminder" {
+		t.Fatalf("expected configured message body, got %q", sent.MessageBody)
+	}
+	if !strings.Contains(output.String(), "SMS sent successfully") {
+		t.Fatalf("expected success output, got %q", output.String())
+	}
+}
+
+func TestRunWrapsSenderError(t *testing.T) {
+	err := run(mapLookup(map[string]string{
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  "AC123",
+		"TWILIO_AUTH_TOKEN":   "token",
+	}), &bytes.Buffer{}, func(smsConfig) error {
+		return errors.New("twilio rejected request")
+	})
+
+	if err == nil || !strings.Contains(err.Error(), "send SMS: twilio rejected request") {
+		t.Fatalf("expected wrapped sender error, got %v", err)
+	}
+}
+
 func TestTruthy(t *testing.T) {
-	truthyValues := []string{"1", "true", "TRUE", "t", "yes", "Y"}
+	truthyValues := []string{"1", "true", "TRUE", "t", "yes", "Y", "on"}
 	for _, value := range truthyValues {
 		if !truthy(value) {
 			t.Fatalf("expected %q to be truthy", value)
