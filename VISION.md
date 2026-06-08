@@ -37,7 +37,7 @@ Contribution rules:
 SMS samples can expose phone numbers and Twilio credentials. Keep all secrets
 and real recipient/sender numbers out of git and avoid logging sensitive values.
 
-## What We Will Not Merge For Now
+## What We Will Not Merge (For Now)
 
 - Committed Twilio credentials or real phone numbers
 - Bulk messaging features
