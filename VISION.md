@@ -1,5 +1,8 @@
 ## Level Up Webinar 101 Vision
 
+This document explains the current state and direction of the project.
+Project overview and developer docs: [`README.md`](README.md)
+
 Level Up Webinar 101 is a Go sample that sends an SMS through Twilio using
 environment-provided phone numbers and Twilio credentials.
 
