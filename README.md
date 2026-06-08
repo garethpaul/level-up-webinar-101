@@ -48,13 +48,14 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Running or Using the Project
 
-Set the required environment variables before sending a real SMS:
+Set the required environment variables before sending a real SMS. Populate
+`TWILIO_AUTH_TOKEN` from your local secret store or shell history-safe prompt.
 
 ```bash
 export TO_PHONE_NUMBER="+15558675310"
 export TWILIO_PHONE_NUMBER="+15558675309"
 export TWILIO_ACCOUNT_SID="AC..."
-export TWILIO_AUTH_TOKEN="..."
+export TWILIO_AUTH_TOKEN
 go run .
 ```
 
