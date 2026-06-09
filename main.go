@@ -129,6 +129,9 @@ func validTwilioAccountSID(value string) bool {
 	if len(value) != 34 || !strings.HasPrefix(value, "AC") {
 		return false
 	}
+	if allZero(value[2:]) {
+		return false
+	}
 	for _, char := range value[2:] {
 		if (char < '0' || char > '9') && (char < 'a' || char > 'f') && (char < 'A' || char > 'F') {
 			return false
@@ -141,12 +144,24 @@ func validTwilioAuthToken(value string) bool {
 	if len(value) != 32 {
 		return false
 	}
+	if allZero(value) {
+		return false
+	}
 	for _, char := range value {
 		if (char < '0' || char > '9') && (char < 'a' || char > 'f') && (char < 'A' || char > 'F') {
 			return false
 		}
 	}
 	return true
+}
+
+func allZero(value string) bool {
+	for _, char := range value {
+		if char != '0' {
+			return false
+		}
+	}
+	return value != ""
 }
 
 func parseDryRun(value string) (bool, error) {

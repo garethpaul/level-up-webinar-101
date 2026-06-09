@@ -6,6 +6,8 @@
   without echoing configured content.
 - Rejected ambiguous `DRY_RUN` values so typos fail closed instead of being
   treated as real sends.
+- Rejected all-zero Twilio Account SID and Auth Token placeholder-shaped
+  credentials without echoing configured values.
 
 ## 2026-06-08
 

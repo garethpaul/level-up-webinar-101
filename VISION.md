@@ -25,6 +25,7 @@ Priority:
 - Validate phone number shape before dry runs or real sends
 - Validate Account SID shape before real sends
 - Validate Auth Token shape before real sends
+- Reject all-zero Twilio credential placeholders before real sends
 - Validate message body length before demo sends
 - Keep `DRY_RUN` available for webinar setup checks that should not send SMS
 - Reject ambiguous `DRY_RUN` values instead of treating typos as real sends

@@ -88,6 +88,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Phone number values must be E.164-style strings beginning with `+` followed by digits.
 - Real sends validate that `TWILIO_ACCOUNT_SID` is an `AC`-prefixed Twilio Account SID.
 - Real sends validate that `TWILIO_AUTH_TOKEN` is a 32-character hexadecimal Twilio Auth Token.
+- All-zero Twilio Account SID and Auth Token placeholder-shaped credentials are rejected by name.
 - `MESSAGE_BODY` values longer than 1600 characters are rejected by name without echoing the body.
 - Ambiguous `DRY_RUN` values are rejected by name without echoing the configured value.
 - Keep Twilio credentials and real phone numbers in local environment variables or secret stores only.

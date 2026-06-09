@@ -149,6 +149,29 @@ func TestLoadConfigRejectsMalformedAuthToken(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsAllZeroCredentialPlaceholders(t *testing.T) {
+	accountSID := accountSIDPrefix() + strings.Repeat("0", accountSIDBodyLength())
+	authToken := strings.Repeat("0", authTokenLength())
+
+	_, err := loadConfig(mapLookup(map[string]string{
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  accountSID,
+		"TWILIO_AUTH_TOKEN":   authToken,
+	}))
+
+	if err == nil {
+		t.Fatal("expected invalid placeholder credential error")
+	}
+	errorText := err.Error()
+	if !strings.Contains(errorText, "TWILIO_ACCOUNT_SID") || !strings.Contains(errorText, "TWILIO_AUTH_TOKEN") {
+		t.Fatalf("expected both credential names in error, got %q", err)
+	}
+	if strings.Contains(errorText, accountSID) || strings.Contains(errorText, authToken) {
+		t.Fatalf("error should not echo credential placeholder values, got %q", err)
+	}
+}
+
 func TestLoadConfigReadsMessageBodyAndCredentials(t *testing.T) {
 	config, err := loadConfig(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     " +15558675310 ",
@@ -336,6 +359,7 @@ func TestValidTwilioAccountSID(t *testing.T) {
 		"",
 		"AC" + "123",
 		string([]byte{83, 75}) + strings.Repeat("1", accountSIDBodyLength()),
+		accountSIDPrefix() + strings.Repeat("0", accountSIDBodyLength()),
 		"AC" + strings.Repeat("1", 31) + "g",
 		testAccountSID() + "0",
 	}
@@ -361,6 +385,7 @@ func TestValidTwilioAuthToken(t *testing.T) {
 		"",
 		strings.Repeat("1", authTokenLength()-1),
 		strings.Repeat("1", authTokenLength()) + "0",
+		strings.Repeat("0", authTokenLength()),
 		strings.Repeat("1", authTokenLength()-1) + "g",
 	}
 	for _, value := range invalid {
