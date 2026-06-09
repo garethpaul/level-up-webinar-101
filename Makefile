@@ -1,9 +1,15 @@
-.PHONY: check fmt
+.PHONY: build check fmt lint test
 
-check:
+check: lint test build
+
+lint:
 	test -z "$$(gofmt -l *.go)"
+
+test:
 	go mod verify
 	go test ./...
+
+build:
 	go build ./...
 
 fmt:

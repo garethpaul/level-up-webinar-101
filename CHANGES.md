@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Split the local Make verification into `make lint`, `make test`, and
+  `make build` targets while keeping `make check` as the full gate.
 - Added `MESSAGE_BODY` length validation that rejects oversized bodies by name
   without echoing configured content.
 - Rejected ambiguous `DRY_RUN` values so typos fail closed instead of being
