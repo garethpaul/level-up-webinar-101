@@ -87,8 +87,11 @@ func loadConfig(lookup func(string) string) (smsConfig, error) {
 	if !validE164PhoneNumber(config.FromPhoneNumber) {
 		invalid = append(invalid, "TWILIO_PHONE_NUMBER")
 	}
+	if !config.DryRun && !validTwilioAccountSID(config.AccountSID) {
+		invalid = append(invalid, "TWILIO_ACCOUNT_SID")
+	}
 	if len(invalid) > 0 {
-		return smsConfig{}, fmt.Errorf("invalid phone number environment variables: %s", strings.Join(invalid, ", "))
+		return smsConfig{}, fmt.Errorf("invalid environment variables: %s", strings.Join(invalid, ", "))
 	}
 
 	return config, nil
@@ -103,6 +106,18 @@ func validE164PhoneNumber(value string) bool {
 	}
 	for _, digit := range value[2:] {
 		if digit < '0' || digit > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func validTwilioAccountSID(value string) bool {
+	if len(value) != 34 || !strings.HasPrefix(value, "AC") {
+		return false
+	}
+	for _, char := range value[2:] {
+		if (char < '0' || char > '9') && (char < 'a' || char > 'f') && (char < 'A' || char > 'F') {
 			return false
 		}
 	}

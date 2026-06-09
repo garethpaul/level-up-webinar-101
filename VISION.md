@@ -23,6 +23,7 @@ Priority:
 - Preserve the simple Twilio SMS send flow
 - Keep phone numbers and Twilio credentials in environment variables
 - Validate phone number shape before dry runs or real sends
+- Validate Account SID shape before real sends
 - Keep `DRY_RUN` available for webinar setup checks that should not send SMS
 - Keep `make check` green before pushing changes
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers
@@ -39,7 +40,7 @@ Contribution rules:
 - One PR = one focused Twilio, Go, test, or documentation change.
 - Do not commit secrets or real phone numbers.
 - Run `make check` before pushing.
-- Keep phone number validation errors limited to environment variable names.
+- Keep validation errors limited to environment variable names.
 - Keep the webinar sample easy to understand.
 - Prefer dry-run/testing improvements before adding broader messaging features.
 

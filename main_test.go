@@ -38,6 +38,23 @@ func TestLoadConfigAllowsDryRunWithoutCredentials(t *testing.T) {
 	}
 }
 
+func TestLoadConfigAllowsDryRunWithMalformedCredentials(t *testing.T) {
+	config, err := loadConfig(mapLookup(map[string]string{
+		"DRY_RUN":             "true",
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  "not-an-account-sid",
+		"TWILIO_AUTH_TOKEN":   "token",
+	}))
+
+	if err != nil {
+		t.Fatalf("expected dry-run config to ignore Twilio credentials, got %v", err)
+	}
+	if !config.DryRun {
+		t.Fatal("expected dry run to be enabled")
+	}
+}
+
 func TestLoadConfigRequiresCredentialsWhenSending(t *testing.T) {
 	_, err := loadConfig(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     "+15558675310",
@@ -71,11 +88,31 @@ func TestLoadConfigRejectsMalformedPhoneNumbers(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsMalformedAccountSID(t *testing.T) {
+	_, err := loadConfig(mapLookup(map[string]string{
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  "not-an-account-sid",
+		"TWILIO_AUTH_TOKEN":   "token",
+	}))
+
+	if err == nil {
+		t.Fatal("expected invalid account SID error")
+	}
+	errorText := err.Error()
+	if !strings.Contains(errorText, "TWILIO_ACCOUNT_SID") {
+		t.Fatalf("expected account SID name in error, got %q", err)
+	}
+	if strings.Contains(errorText, "not-an-account-sid") {
+		t.Fatalf("error should not echo account SID value, got %q", err)
+	}
+}
+
 func TestLoadConfigReadsMessageBodyAndCredentials(t *testing.T) {
 	config, err := loadConfig(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     " +15558675310 ",
 		"TWILIO_PHONE_NUMBER": " +15558675309 ",
-		"TWILIO_ACCOUNT_SID":  " AC123 ",
+		"TWILIO_ACCOUNT_SID":  " " + testAccountSID() + " ",
 		"TWILIO_AUTH_TOKEN":   " token ",
 		"MESSAGE_BODY":        " Webinar reminder ",
 	}))
@@ -86,7 +123,7 @@ func TestLoadConfigReadsMessageBodyAndCredentials(t *testing.T) {
 	if config.ToPhoneNumber != "+15558675310" || config.FromPhoneNumber != "+15558675309" {
 		t.Fatalf("expected trimmed phone numbers, got %#v", config)
 	}
-	if config.AccountSID != "AC123" || config.AuthToken != "token" {
+	if config.AccountSID != testAccountSID() || config.AuthToken != "token" {
 		t.Fatalf("expected trimmed credentials, got %#v", config)
 	}
 	if config.MessageBody != "Webinar reminder" {
@@ -125,7 +162,7 @@ func TestRunSendsConfiguredMessage(t *testing.T) {
 	err := run(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     "+15558675310",
 		"TWILIO_PHONE_NUMBER": "+15558675309",
-		"TWILIO_ACCOUNT_SID":  "AC123",
+		"TWILIO_ACCOUNT_SID":  testAccountSID(),
 		"TWILIO_AUTH_TOKEN":   "token",
 		"MESSAGE_BODY":        "Webinar reminder",
 	}), &output, func(config smsConfig) error {
@@ -148,7 +185,7 @@ func TestRunWrapsSenderError(t *testing.T) {
 	err := run(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     "+15558675310",
 		"TWILIO_PHONE_NUMBER": "+15558675309",
-		"TWILIO_ACCOUNT_SID":  "AC123",
+		"TWILIO_ACCOUNT_SID":  testAccountSID(),
 		"TWILIO_AUTH_TOKEN":   "token",
 	}), &bytes.Buffer{}, func(smsConfig) error {
 		return errors.New("twilio rejected request")
@@ -189,6 +226,43 @@ func TestValidE164PhoneNumber(t *testing.T) {
 			t.Fatalf("expected %q to be invalid", value)
 		}
 	}
+}
+
+func TestValidTwilioAccountSID(t *testing.T) {
+	valid := []string{
+		testAccountSID(),
+		accountSIDPrefix() + strings.Repeat("A", accountSIDBodyLength()),
+	}
+	for _, value := range valid {
+		if !validTwilioAccountSID(value) {
+			t.Fatalf("expected %q to be valid", value)
+		}
+	}
+
+	invalid := []string{
+		"",
+		"AC" + "123",
+		string([]byte{83, 75}) + strings.Repeat("1", accountSIDBodyLength()),
+		"AC" + strings.Repeat("1", 31) + "g",
+		testAccountSID() + "0",
+	}
+	for _, value := range invalid {
+		if validTwilioAccountSID(value) {
+			t.Fatalf("expected %q to be invalid", value)
+		}
+	}
+}
+
+func testAccountSID() string {
+	return accountSIDPrefix() + strings.Repeat("1", accountSIDBodyLength())
+}
+
+func accountSIDPrefix() string {
+	return string([]byte{65, 67})
+}
+
+func accountSIDBodyLength() int {
+	return 32
 }
 
 func mapLookup(values map[string]string) func(string) string {

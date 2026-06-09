@@ -30,6 +30,7 @@ Helpful reports include:
 - Required real-send values are `TO_PHONE_NUMBER`, `TWILIO_PHONE_NUMBER`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`; reports should note whether failures expose these values.
 - `DRY_RUN=1` should validate non-secret E.164-style phone-number configuration without sending SMS or printing phone numbers, account SIDs, or auth tokens.
 - Phone number validation errors should name environment variables rather than echoing configured phone number values.
+- Real-send Account SID validation errors should name `TWILIO_ACCOUNT_SID` rather than echoing configured values.
 - Keep `.env` files, local shell exports, real phone numbers, account SIDs, auth tokens, API keys, and webhook secrets out of git.
 
 
