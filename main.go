@@ -88,13 +88,15 @@ func loadConfig(lookup func(string) string) (smsConfig, error) {
 	}
 
 	var invalid []string
-	if !validE164PhoneNumber(config.ToPhoneNumber) {
+	validToPhoneNumber := validE164PhoneNumber(config.ToPhoneNumber)
+	validFromPhoneNumber := validE164PhoneNumber(config.FromPhoneNumber)
+	if !validToPhoneNumber {
 		invalid = append(invalid, "TO_PHONE_NUMBER")
 	}
-	if !validE164PhoneNumber(config.FromPhoneNumber) {
+	if !validFromPhoneNumber {
 		invalid = append(invalid, "TWILIO_PHONE_NUMBER")
 	}
-	if config.ToPhoneNumber != "" && config.ToPhoneNumber == config.FromPhoneNumber {
+	if validToPhoneNumber && validFromPhoneNumber && config.ToPhoneNumber == config.FromPhoneNumber {
 		invalid = append(invalid, "TO_PHONE_NUMBER", "TWILIO_PHONE_NUMBER")
 	}
 	if !config.DryRun && !validTwilioAccountSID(config.AccountSID) {

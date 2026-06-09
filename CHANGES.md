@@ -12,6 +12,8 @@
   credentials without echoing configured values.
 - Rejected matching sender and recipient phone numbers without echoing the
   shared value.
+- Avoided duplicate phone-number field names when malformed sender and
+  recipient values match.
 
 ## 2026-06-08
 
