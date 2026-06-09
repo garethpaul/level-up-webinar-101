@@ -14,6 +14,9 @@
   shared value.
 - Avoided duplicate phone-number field names when malformed sender and
   recipient values match.
+- Added `scripts/check-baseline.sh` and wired it into `make check` so required
+  repository files, docs-plan metadata, module metadata, and local ignore
+  hygiene are verified before push.
 
 ## 2026-06-08
 

@@ -21,12 +21,13 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `main_test.go` - configuration and dry-run unit tests
 - `SECURITY.md` - security reporting and disclosure guidance
 - `VISION.md` - project direction and maintenance guardrails
+- `scripts/check-baseline.sh` - required-file, documentation, and local hygiene guard
 
 Additional scan context:
 
 - Source directories: no top-level source directories detected
 - Dependency and build manifests: go.mod, go.sum
-- Entry points or build surfaces: `make lint`, `make test`, `make build`, `make check`, main.go
+- Entry points or build surfaces: `make lint`, `make test`, `make build`, `make check`, scripts/check-baseline.sh, main.go
 - Test-looking files: main_test.go
 
 ## Getting Started
@@ -83,7 +84,11 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 - `make lint` verifies Go formatting with `gofmt`.
 - `make test` verifies Go module checksums and runs the unit tests.
 - `make build` compiles the local package.
-- `make check` runs `make lint`, `make test`, and `make build`.
+- `scripts/check-baseline.sh` verifies required repository files, Make target
+  coverage, README verification notes, Go module metadata, completed plan
+  metadata, and local secret/editor ignore hygiene.
+- `make check` runs `make lint`, `make test`, `make build`, and
+  `scripts/check-baseline.sh`.
 - `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, message body length validation, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -108,10 +113,14 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 ## Maintenance Notes
 
-- Run `make lint`, `make test`, `make build`, and `make check` before pushing Go, dependency, README, or security-policy changes.
+- Run `make lint`, `make test`, `make build`, `scripts/check-baseline.sh`,
+  and `make check` before pushing Go, dependency, README, or security-policy
+  changes.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-09-make-gate-targets.md` for the local gate target guardrail.
+- See `docs/plans/2026-06-09-scripted-baseline-check.md` for the scripted
+  repository baseline guardrail.
 
 ## Contributing
 

@@ -13,9 +13,10 @@ SDK and environment-based configuration. Project context lives in
 The goal is to keep the sample small, safe, and easy to run for demos.
 
 Current baseline: the sample has Go module metadata, configuration validation,
-`DRY_RUN` support for no-send demos, and local Make gates for formatting,
-module verification, unit tests, and a local build through `make lint`,
-`make test`, `make build`, and `make check`.
+`DRY_RUN` support for no-send demos, local Make gates for formatting, module
+verification, unit tests, a local build through `make lint`, `make test`,
+`make build`, and `make check`, plus `scripts/check-baseline.sh` for
+repository metadata and hygiene checks.
 
 The current focus is:
 
@@ -33,6 +34,8 @@ Priority:
 - Reject ambiguous `DRY_RUN` values instead of treating typos as real sends
 - Keep `make lint`, `make test`, `make build`, and `make check` green before
   pushing changes
+- Keep `scripts/check-baseline.sh` green as repository metadata and local
+  hygiene evolve
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers
 - Maintain security policy for the sample
 
@@ -47,6 +50,8 @@ Contribution rules:
 - One PR = one focused Twilio, Go, test, or documentation change.
 - Do not commit secrets or real phone numbers.
 - Run `make lint`, `make test`, `make build`, and `make check` before pushing.
+- Update `scripts/check-baseline.sh` when required files or verification docs
+  intentionally change.
 - Keep validation errors limited to environment variable names.
 - Keep the webinar sample easy to understand.
 - Prefer dry-run/testing improvements before adding broader messaging features.
