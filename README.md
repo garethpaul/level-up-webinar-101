@@ -65,7 +65,7 @@ go run .
 Optional environment variables:
 
 - `MESSAGE_BODY` overrides the default `Hello from Golang!` body.
-- `DRY_RUN=1` validates phone-number configuration without requiring Twilio credentials or sending SMS.
+- `DRY_RUN=1` validates phone-number configuration without requiring Twilio credentials or sending SMS. Accepted true values are `1`, `true`, `t`, `yes`, `y`, and `on`; accepted false values are empty, `0`, `false`, `f`, `no`, `n`, and `off`. Any other `DRY_RUN` value is rejected instead of being treated as a real send.
 
 For a no-send setup check:
 
@@ -76,7 +76,7 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 ## Testing and Verification
 
 - `make check` verifies Go formatting, module checksums, tests, and a local build.
-- `go test ./...` covers missing environment variables, dry-run behavior, E.164-style phone number validation, Account SID validation, Auth Token validation, custom message body handling, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
+- `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, Account SID validation, Auth Token validation, custom message body handling, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -87,6 +87,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Phone number values must be E.164-style strings beginning with `+` followed by digits.
 - Real sends validate that `TWILIO_ACCOUNT_SID` is an `AC`-prefixed Twilio Account SID.
 - Real sends validate that `TWILIO_AUTH_TOKEN` is a 32-character hexadecimal Twilio Auth Token.
+- Ambiguous `DRY_RUN` values are rejected by name without echoing the configured value.
 - Keep Twilio credentials and real phone numbers in local environment variables or secret stores only.
 
 ## Security and Privacy Notes

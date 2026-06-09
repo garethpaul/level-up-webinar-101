@@ -26,6 +26,7 @@ Priority:
 - Validate Account SID shape before real sends
 - Validate Auth Token shape before real sends
 - Keep `DRY_RUN` available for webinar setup checks that should not send SMS
+- Reject ambiguous `DRY_RUN` values instead of treating typos as real sends
 - Keep `make check` green before pushing changes
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers
 - Maintain security policy for the sample

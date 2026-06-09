@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-09
+
+- Rejected ambiguous `DRY_RUN` values so typos fail closed instead of being
+  treated as real sends.
+
 ## 2026-06-08
 
 - Added Go module metadata and checksum locking for the Twilio SDK dependency.

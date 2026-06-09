@@ -48,13 +48,18 @@ func run(lookup func(string) string, output io.Writer, send func(smsConfig) erro
 }
 
 func loadConfig(lookup func(string) string) (smsConfig, error) {
+	dryRun, err := parseDryRun(lookup("DRY_RUN"))
+	if err != nil {
+		return smsConfig{}, err
+	}
+
 	config := smsConfig{
 		ToPhoneNumber:   strings.TrimSpace(lookup("TO_PHONE_NUMBER")),
 		FromPhoneNumber: strings.TrimSpace(lookup("TWILIO_PHONE_NUMBER")),
 		AccountSID:      strings.TrimSpace(lookup("TWILIO_ACCOUNT_SID")),
 		AuthToken:       strings.TrimSpace(lookup("TWILIO_AUTH_TOKEN")),
 		MessageBody:     strings.TrimSpace(lookup("MESSAGE_BODY")),
-		DryRun:          truthy(lookup("DRY_RUN")),
+		DryRun:          dryRun,
 	}
 
 	if config.MessageBody == "" {
@@ -139,13 +144,14 @@ func validTwilioAuthToken(value string) bool {
 	return true
 }
 
-func truthy(value string) bool {
+func parseDryRun(value string) (bool, error) {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "1", "true", "t", "yes", "y", "on":
-		return true
-	default:
-		return false
+		return true, nil
+	case "", "0", "false", "f", "no", "n", "off":
+		return false, nil
 	}
+	return false, fmt.Errorf("invalid environment variables: DRY_RUN")
 }
 
 func sendSMS(config smsConfig) error {

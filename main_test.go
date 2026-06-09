@@ -55,6 +55,27 @@ func TestLoadConfigAllowsDryRunWithMalformedCredentials(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsAmbiguousDryRunValue(t *testing.T) {
+	_, err := loadConfig(mapLookup(map[string]string{
+		"DRY_RUN":             "send-no-message",
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  testAccountSID(),
+		"TWILIO_AUTH_TOKEN":   testAuthToken(),
+	}))
+
+	if err == nil {
+		t.Fatal("expected invalid DRY_RUN error")
+	}
+	errorText := err.Error()
+	if !strings.Contains(errorText, "DRY_RUN") {
+		t.Fatalf("expected DRY_RUN name in error, got %q", err)
+	}
+	if strings.Contains(errorText, "send-no-message") {
+		t.Fatalf("error should not echo DRY_RUN value, got %q", err)
+	}
+}
+
 func TestLoadConfigRequiresCredentialsWhenSending(t *testing.T) {
 	_, err := loadConfig(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     "+15558675310",
@@ -216,19 +237,31 @@ func TestRunWrapsSenderError(t *testing.T) {
 	}
 }
 
-func TestTruthy(t *testing.T) {
+func TestParseDryRun(t *testing.T) {
 	truthyValues := []string{"1", "true", "TRUE", "t", "yes", "Y", "on"}
 	for _, value := range truthyValues {
-		if !truthy(value) {
+		parsed, err := parseDryRun(value)
+		if err != nil {
+			t.Fatalf("expected %q to parse, got %v", value, err)
+		}
+		if !parsed {
 			t.Fatalf("expected %q to be truthy", value)
 		}
 	}
 
-	falseValues := []string{"", "0", "false", "no"}
+	falseValues := []string{"", "0", "false", "FALSE", "f", "no", "N", "off", " OFF "}
 	for _, value := range falseValues {
-		if truthy(value) {
+		parsed, err := parseDryRun(value)
+		if err != nil {
+			t.Fatalf("expected %q to parse, got %v", value, err)
+		}
+		if parsed {
 			t.Fatalf("expected %q to be false", value)
 		}
+	}
+
+	if _, err := parseDryRun("maybe"); err == nil {
+		t.Fatal("expected ambiguous dry-run value to be rejected")
 	}
 }
 
