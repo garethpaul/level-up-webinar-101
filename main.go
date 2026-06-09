@@ -94,6 +94,9 @@ func loadConfig(lookup func(string) string) (smsConfig, error) {
 	if !validE164PhoneNumber(config.FromPhoneNumber) {
 		invalid = append(invalid, "TWILIO_PHONE_NUMBER")
 	}
+	if config.ToPhoneNumber != "" && config.ToPhoneNumber == config.FromPhoneNumber {
+		invalid = append(invalid, "TO_PHONE_NUMBER", "TWILIO_PHONE_NUMBER")
+	}
 	if !config.DryRun && !validTwilioAccountSID(config.AccountSID) {
 		invalid = append(invalid, "TWILIO_ACCOUNT_SID")
 	}

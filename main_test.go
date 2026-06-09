@@ -109,6 +109,26 @@ func TestLoadConfigRejectsMalformedPhoneNumbers(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsMatchingSenderAndRecipient(t *testing.T) {
+	phoneNumber := "+15558675310"
+	_, err := loadConfig(mapLookup(map[string]string{
+		"DRY_RUN":             "1",
+		"TO_PHONE_NUMBER":     phoneNumber,
+		"TWILIO_PHONE_NUMBER": phoneNumber,
+	}))
+
+	if err == nil {
+		t.Fatal("expected matching phone number error")
+	}
+	errorText := err.Error()
+	if !strings.Contains(errorText, "TO_PHONE_NUMBER") || !strings.Contains(errorText, "TWILIO_PHONE_NUMBER") {
+		t.Fatalf("expected both phone number names in error, got %q", err)
+	}
+	if strings.Contains(errorText, phoneNumber) {
+		t.Fatalf("error should not echo matching phone number value, got %q", err)
+	}
+}
+
 func TestLoadConfigRejectsMalformedAccountSID(t *testing.T) {
 	_, err := loadConfig(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     "+15558675310",

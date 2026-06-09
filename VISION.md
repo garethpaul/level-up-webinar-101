@@ -24,6 +24,7 @@ Priority:
 - Preserve the simple Twilio SMS send flow
 - Keep phone numbers and Twilio credentials in environment variables
 - Validate phone number shape before dry runs or real sends
+- Reject matching sender and recipient phone numbers
 - Validate Account SID shape before real sends
 - Validate Auth Token shape before real sends
 - Reject all-zero Twilio credential placeholders before real sends

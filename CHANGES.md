@@ -10,6 +10,8 @@
   treated as real sends.
 - Rejected all-zero Twilio Account SID and Auth Token placeholder-shaped
   credentials without echoing configured values.
+- Rejected matching sender and recipient phone numbers without echoing the
+  shared value.
 
 ## 2026-06-08
 
