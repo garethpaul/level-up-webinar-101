@@ -33,6 +33,7 @@ Helpful reports include:
 - Phone number validation errors should name environment variables rather than echoing configured phone number values.
 - Real-send Account SID validation errors should name `TWILIO_ACCOUNT_SID` rather than echoing configured values.
 - Real-send Auth Token validation errors should name `TWILIO_AUTH_TOKEN` rather than echoing configured values.
+- Message body length validation errors should name `MESSAGE_BODY` rather than echoing oversized content.
 - Keep `.env` files, local shell exports, real phone numbers, account SIDs, auth tokens, API keys, and webhook secrets out of git.
 
 

@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added `MESSAGE_BODY` length validation that rejects oversized bodies by name
+  without echoing configured content.
 - Rejected ambiguous `DRY_RUN` values so typos fail closed instead of being
   treated as real sends.
 
