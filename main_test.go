@@ -44,7 +44,7 @@ func TestLoadConfigAllowsDryRunWithMalformedCredentials(t *testing.T) {
 		"TO_PHONE_NUMBER":     "+15558675310",
 		"TWILIO_PHONE_NUMBER": "+15558675309",
 		"TWILIO_ACCOUNT_SID":  "not-an-account-sid",
-		"TWILIO_AUTH_TOKEN":   "token",
+		"TWILIO_AUTH_TOKEN":   "not-an-auth-token",
 	}))
 
 	if err != nil {
@@ -108,12 +108,32 @@ func TestLoadConfigRejectsMalformedAccountSID(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsMalformedAuthToken(t *testing.T) {
+	_, err := loadConfig(mapLookup(map[string]string{
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  testAccountSID(),
+		"TWILIO_AUTH_TOKEN":   "not-an-auth-token",
+	}))
+
+	if err == nil {
+		t.Fatal("expected invalid auth token error")
+	}
+	errorText := err.Error()
+	if !strings.Contains(errorText, "TWILIO_AUTH_TOKEN") {
+		t.Fatalf("expected auth token name in error, got %q", err)
+	}
+	if strings.Contains(errorText, "not-an-auth-token") {
+		t.Fatalf("error should not echo auth token value, got %q", err)
+	}
+}
+
 func TestLoadConfigReadsMessageBodyAndCredentials(t *testing.T) {
 	config, err := loadConfig(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     " +15558675310 ",
 		"TWILIO_PHONE_NUMBER": " +15558675309 ",
 		"TWILIO_ACCOUNT_SID":  " " + testAccountSID() + " ",
-		"TWILIO_AUTH_TOKEN":   " token ",
+		"TWILIO_AUTH_TOKEN":   " " + testAuthToken() + " ",
 		"MESSAGE_BODY":        " Webinar reminder ",
 	}))
 
@@ -123,7 +143,7 @@ func TestLoadConfigReadsMessageBodyAndCredentials(t *testing.T) {
 	if config.ToPhoneNumber != "+15558675310" || config.FromPhoneNumber != "+15558675309" {
 		t.Fatalf("expected trimmed phone numbers, got %#v", config)
 	}
-	if config.AccountSID != testAccountSID() || config.AuthToken != "token" {
+	if config.AccountSID != testAccountSID() || config.AuthToken != testAuthToken() {
 		t.Fatalf("expected trimmed credentials, got %#v", config)
 	}
 	if config.MessageBody != "Webinar reminder" {
@@ -163,7 +183,7 @@ func TestRunSendsConfiguredMessage(t *testing.T) {
 		"TO_PHONE_NUMBER":     "+15558675310",
 		"TWILIO_PHONE_NUMBER": "+15558675309",
 		"TWILIO_ACCOUNT_SID":  testAccountSID(),
-		"TWILIO_AUTH_TOKEN":   "token",
+		"TWILIO_AUTH_TOKEN":   testAuthToken(),
 		"MESSAGE_BODY":        "Webinar reminder",
 	}), &output, func(config smsConfig) error {
 		sent = config
@@ -186,7 +206,7 @@ func TestRunWrapsSenderError(t *testing.T) {
 		"TO_PHONE_NUMBER":     "+15558675310",
 		"TWILIO_PHONE_NUMBER": "+15558675309",
 		"TWILIO_ACCOUNT_SID":  testAccountSID(),
-		"TWILIO_AUTH_TOKEN":   "token",
+		"TWILIO_AUTH_TOKEN":   testAuthToken(),
 	}), &bytes.Buffer{}, func(smsConfig) error {
 		return errors.New("twilio rejected request")
 	})
@@ -253,8 +273,36 @@ func TestValidTwilioAccountSID(t *testing.T) {
 	}
 }
 
+func TestValidTwilioAuthToken(t *testing.T) {
+	valid := []string{
+		testAuthToken(),
+		strings.Repeat("A", authTokenLength()),
+	}
+	for _, value := range valid {
+		if !validTwilioAuthToken(value) {
+			t.Fatalf("expected %q to be valid", value)
+		}
+	}
+
+	invalid := []string{
+		"",
+		strings.Repeat("1", authTokenLength()-1),
+		strings.Repeat("1", authTokenLength()) + "0",
+		strings.Repeat("1", authTokenLength()-1) + "g",
+	}
+	for _, value := range invalid {
+		if validTwilioAuthToken(value) {
+			t.Fatalf("expected %q to be invalid", value)
+		}
+	}
+}
+
 func testAccountSID() string {
 	return accountSIDPrefix() + strings.Repeat("1", accountSIDBodyLength())
+}
+
+func testAuthToken() string {
+	return strings.Repeat("a", authTokenLength())
 }
 
 func accountSIDPrefix() string {
@@ -262,6 +310,10 @@ func accountSIDPrefix() string {
 }
 
 func accountSIDBodyLength() int {
+	return 32
+}
+
+func authTokenLength() int {
 	return 32
 }
 

@@ -90,6 +90,9 @@ func loadConfig(lookup func(string) string) (smsConfig, error) {
 	if !config.DryRun && !validTwilioAccountSID(config.AccountSID) {
 		invalid = append(invalid, "TWILIO_ACCOUNT_SID")
 	}
+	if !config.DryRun && !validTwilioAuthToken(config.AuthToken) {
+		invalid = append(invalid, "TWILIO_AUTH_TOKEN")
+	}
 	if len(invalid) > 0 {
 		return smsConfig{}, fmt.Errorf("invalid environment variables: %s", strings.Join(invalid, ", "))
 	}
@@ -117,6 +120,18 @@ func validTwilioAccountSID(value string) bool {
 		return false
 	}
 	for _, char := range value[2:] {
+		if (char < '0' || char > '9') && (char < 'a' || char > 'f') && (char < 'A' || char > 'F') {
+			return false
+		}
+	}
+	return true
+}
+
+func validTwilioAuthToken(value string) bool {
+	if len(value) != 32 {
+		return false
+	}
+	for _, char := range value {
 		if (char < '0' || char > '9') && (char < 'a' || char > 'f') && (char < 'A' || char > 'F') {
 			return false
 		}

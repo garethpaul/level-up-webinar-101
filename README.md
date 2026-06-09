@@ -52,6 +52,7 @@ Set the required environment variables before sending a real SMS. Populate
 `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` from your local secret store or
 shell history-safe prompt. Phone numbers should use E.164 format, such as `+15558675310`.
 `TWILIO_ACCOUNT_SID` should use Twilio's `AC`-prefixed Account SID format.
+`TWILIO_AUTH_TOKEN` should use Twilio's 32-character hexadecimal Auth Token format.
 
 ```bash
 export TO_PHONE_NUMBER="+15558675310"
@@ -75,7 +76,7 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 ## Testing and Verification
 
 - `make check` verifies Go formatting, module checksums, tests, and a local build.
-- `go test ./...` covers missing environment variables, dry-run behavior, E.164-style phone number validation, Account SID validation, custom message body handling, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
+- `go test ./...` covers missing environment variables, dry-run behavior, E.164-style phone number validation, Account SID validation, Auth Token validation, custom message body handling, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -85,6 +86,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Required for `DRY_RUN=1`: `TO_PHONE_NUMBER` and `TWILIO_PHONE_NUMBER`.
 - Phone number values must be E.164-style strings beginning with `+` followed by digits.
 - Real sends validate that `TWILIO_ACCOUNT_SID` is an `AC`-prefixed Twilio Account SID.
+- Real sends validate that `TWILIO_AUTH_TOKEN` is a 32-character hexadecimal Twilio Auth Token.
 - Keep Twilio credentials and real phone numbers in local environment variables or secret stores only.
 
 ## Security and Privacy Notes

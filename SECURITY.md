@@ -31,6 +31,7 @@ Helpful reports include:
 - `DRY_RUN=1` should validate non-secret E.164-style phone-number configuration without sending SMS or printing phone numbers, account SIDs, or auth tokens.
 - Phone number validation errors should name environment variables rather than echoing configured phone number values.
 - Real-send Account SID validation errors should name `TWILIO_ACCOUNT_SID` rather than echoing configured values.
+- Real-send Auth Token validation errors should name `TWILIO_AUTH_TOKEN` rather than echoing configured values.
 - Keep `.env` files, local shell exports, real phone numbers, account SIDs, auth tokens, API keys, and webhook secrets out of git.
 
 
