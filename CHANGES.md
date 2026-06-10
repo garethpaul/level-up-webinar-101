@@ -2,6 +2,8 @@
 
 ## 2026-06-10
 
+- Added `go vet ./...` and pinned, read-only Go 1.24 hosted validation for the
+  canonical `make check` gate without live Twilio access.
 - Rejected invalid UTF-8 `MESSAGE_BODY` values by name before building a
   Twilio send request.
 

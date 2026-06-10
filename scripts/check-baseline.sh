@@ -17,6 +17,7 @@ require_file() {
 
 for path in \
   ".gitignore" \
+  ".github/workflows/check.yml" \
   "CHANGES.md" \
   "Makefile" \
   "README.md" \
@@ -30,6 +31,7 @@ for path in \
   "docs/plans/2026-06-09-make-gate-targets.md" \
   "docs/plans/2026-06-09-scripted-baseline-check.md" \
   "docs/plans/2026-06-10-message-body-utf8-validation.md" \
+  "docs/plans/2026-06-10-hosted-go-validation.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
@@ -49,6 +51,28 @@ if ! grep -Fq "scripts/check-baseline.sh" "$MAKEFILE"; then
   exit 1
 fi
 
+if ! grep -Fq "go vet ./..." "$MAKEFILE"; then
+  printf '%s\n' "Makefile must run go vet from make lint." >&2
+  exit 1
+fi
+
+WORKFLOW="$ROOT_DIR/.github/workflows/check.yml"
+for workflow_value in \
+  "permissions:" \
+  "contents: read" \
+  "cancel-in-progress: true" \
+  "runs-on: ubuntu-24.04" \
+  "timeout-minutes: 10" \
+  "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" \
+  "actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c" \
+  "go-version: \"1.24.x\"" \
+  "run: make check"; do
+  if ! grep -Fq "$workflow_value" "$WORKFLOW"; then
+    printf '%s\n' "Check workflow must keep $workflow_value" >&2
+    exit 1
+  fi
+done
+
 for target in "lint:" "test:" "build:" "fmt:" "check:"; do
   if ! grep -Fq "$target" "$MAKEFILE"; then
     printf '%s\n' "Makefile must expose the $target gate." >&2
@@ -65,6 +89,7 @@ for documented in \
   "MESSAGE_BODY" \
   "invalid UTF-8" \
   "go test ./..." \
+  "go vet ./..." \
   "make check" \
   "scripts/check-baseline.sh"; do
   if ! grep -Fq "$documented" "$README"; then

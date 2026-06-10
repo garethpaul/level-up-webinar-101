@@ -27,6 +27,9 @@ Helpful reports include:
 - This repository appears to be a public sample, documentation, or utility project. The active security scope is the code and documentation on the default branch.
 - Review found external API integrations or credential-adjacent configuration; changes in those areas should receive security-focused review before merge.
 - The sample now uses `go.mod` and `go.sum` for Twilio SDK dependency metadata. Run `make check` after Go, dependency, or documentation changes.
+- The pinned Linux workflow runs formatting, `go vet`, module verification,
+  injected sender tests, and builds without Twilio credentials, real phone
+  numbers, outbound SMS requests, or live API calls.
 - Required real-send values are `TO_PHONE_NUMBER`, `TWILIO_PHONE_NUMBER`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`; reports should note whether failures expose these values.
 - `DRY_RUN=1` should validate non-secret E.164-style phone-number configuration without sending SMS or printing phone numbers, account SIDs, or auth tokens.
 - Ambiguous `DRY_RUN` values should fail closed by naming `DRY_RUN` without echoing the configured value.
