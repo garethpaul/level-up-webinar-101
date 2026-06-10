@@ -23,6 +23,7 @@ The current focus is:
 Priority:
 
 - Preserve the simple Twilio SMS send flow
+- Keep live Twilio requests bounded by an explicit 10-second timeout
 - Keep phone numbers and Twilio credentials in environment variables
 - Validate phone number shape before dry runs or real sends
 - Reject matching sender and recipient phone numbers

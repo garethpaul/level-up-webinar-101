@@ -58,6 +58,8 @@ shell history-safe prompt. Phone numbers should use E.164 format, such as `+1555
 The recipient and Twilio sender phone numbers must be different.
 `TWILIO_ACCOUNT_SID` should use Twilio's `AC`-prefixed Account SID format.
 `TWILIO_AUTH_TOKEN` should use Twilio's 32-character hexadecimal Auth Token format.
+Live sends apply an explicit 10-second Twilio request timeout before message
+creation.
 
 ```bash
 export TO_PHONE_NUMBER="+15558675310"

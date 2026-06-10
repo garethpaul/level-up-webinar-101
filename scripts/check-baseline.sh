@@ -31,6 +31,7 @@ for path in \
   "docs/plans/2026-06-09-make-gate-targets.md" \
   "docs/plans/2026-06-09-scripted-baseline-check.md" \
   "docs/plans/2026-06-10-message-body-utf8-validation.md" \
+  "docs/plans/2026-06-10-explicit-twilio-timeout.md" \
   "docs/plans/2026-06-10-hosted-go-validation.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
@@ -43,6 +44,18 @@ fi
 
 if ! grep -Fq "TestLoadConfigRejectsInvalidUTF8MessageBody" "$ROOT_DIR/main_test.go"; then
   printf '%s\n' "main_test.go must cover invalid UTF-8 MESSAGE_BODY values." >&2
+  exit 1
+fi
+
+if ! grep -Fq "const twilioRequestTimeout = 10 * time.Second" "$ROOT_DIR/main.go" || \
+   ! grep -Fq "client.SetTimeout(twilioRequestTimeout)" "$ROOT_DIR/main.go" || \
+   ! grep -Fq "configureTwilioClient(client)" "$ROOT_DIR/main.go"; then
+  printf '%s\n' "main.go must apply the explicit 10-second Twilio request timeout." >&2
+  exit 1
+fi
+
+if ! grep -Fq "TestConfigureTwilioClientSetsRequestTimeout" "$ROOT_DIR/main_test.go"; then
+  printf '%s\n' "main_test.go must cover the configured Twilio request timeout." >&2
   exit 1
 fi
 
@@ -87,6 +100,7 @@ for documented in \
   "TWILIO_AUTH_TOKEN" \
   "DRY_RUN=1" \
   "MESSAGE_BODY" \
+  "10-second Twilio request timeout" \
   "invalid UTF-8" \
   "go test ./..." \
   "go vet ./..." \
