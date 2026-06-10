@@ -70,7 +70,7 @@ go run .
 Optional environment variables:
 
 - `MESSAGE_BODY` overrides the default `Hello from Golang!` body.
-- `MESSAGE_BODY` is trimmed and must be no more than 1600 characters.
+- `MESSAGE_BODY` is trimmed, must be valid UTF-8, and must be no more than 1600 characters.
 - `DRY_RUN=1` validates phone-number configuration without requiring Twilio credentials or sending SMS. Accepted true values are `1`, `true`, `t`, `yes`, `y`, and `on`; accepted false values are empty, `0`, `false`, `f`, `no`, `n`, and `off`. Any other `DRY_RUN` value is rejected instead of being treated as a real send.
 
 For a no-send setup check:
@@ -89,7 +89,7 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
   metadata, and local secret/editor ignore hygiene.
 - `make check` runs `make lint`, `make test`, `make build`, and
   `scripts/check-baseline.sh`.
-- `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, message body length validation, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
+- `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -102,7 +102,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Real sends validate that `TWILIO_ACCOUNT_SID` is an `AC`-prefixed Twilio Account SID.
 - Real sends validate that `TWILIO_AUTH_TOKEN` is a 32-character hexadecimal Twilio Auth Token.
 - All-zero Twilio Account SID and Auth Token placeholder-shaped credentials are rejected by name.
-- `MESSAGE_BODY` values longer than 1600 characters are rejected by name without echoing the body.
+- `MESSAGE_BODY` values with invalid UTF-8 or more than 1600 characters are rejected by name without echoing the body.
 - Ambiguous `DRY_RUN` values are rejected by name without echoing the configured value.
 - Keep Twilio credentials and real phone numbers in local environment variables or secret stores only.
 

@@ -29,7 +29,7 @@ Priority:
 - Validate Account SID shape before real sends
 - Validate Auth Token shape before real sends
 - Reject all-zero Twilio credential placeholders before real sends
-- Validate message body length before demo sends
+- Validate message body encoding and length before demo sends, including invalid UTF-8 rejection
 - Keep `DRY_RUN` available for webinar setup checks that should not send SMS
 - Reject ambiguous `DRY_RUN` values instead of treating typos as real sends
 - Keep `make lint`, `make test`, `make build`, and `make check` green before

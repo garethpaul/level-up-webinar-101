@@ -256,6 +256,28 @@ func TestLoadConfigRejectsOversizedMessageBody(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsInvalidUTF8MessageBody(t *testing.T) {
+	body := string([]byte{'h', 'i', 0xff})
+	_, err := loadConfig(mapLookup(map[string]string{
+		"TO_PHONE_NUMBER":     "+15558675310",
+		"TWILIO_PHONE_NUMBER": "+15558675309",
+		"TWILIO_ACCOUNT_SID":  testAccountSID(),
+		"TWILIO_AUTH_TOKEN":   testAuthToken(),
+		"MESSAGE_BODY":        body,
+	}))
+
+	if err == nil {
+		t.Fatal("expected invalid message body error")
+	}
+	errorText := err.Error()
+	if !strings.Contains(errorText, "MESSAGE_BODY") {
+		t.Fatalf("expected MESSAGE_BODY name in error, got %q", err)
+	}
+	if strings.Contains(errorText, body) {
+		t.Fatalf("error should not echo message body value, got %q", err)
+	}
+}
+
 func TestLoadConfigAcceptsMaxLengthMessageBody(t *testing.T) {
 	body := strings.Repeat("a", maxMessageBodyCharacters)
 	config, err := loadConfig(mapLookup(map[string]string{

@@ -105,7 +105,9 @@ func loadConfig(lookup func(string) string) (smsConfig, error) {
 	if !config.DryRun && !validTwilioAuthToken(config.AuthToken) {
 		invalid = append(invalid, "TWILIO_AUTH_TOKEN")
 	}
-	if utf8.RuneCountInString(config.MessageBody) > maxMessageBodyCharacters {
+	if !utf8.ValidString(config.MessageBody) {
+		invalid = append(invalid, "MESSAGE_BODY")
+	} else if utf8.RuneCountInString(config.MessageBody) > maxMessageBodyCharacters {
 		invalid = append(invalid, "MESSAGE_BODY")
 	}
 	if len(invalid) > 0 {

@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-10
+
+- Rejected invalid UTF-8 `MESSAGE_BODY` values by name before building a
+  Twilio send request.
+
 ## 2026-06-09
 
 - Split the local Make verification into `make lint`, `make test`, and

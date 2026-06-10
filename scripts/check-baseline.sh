@@ -29,9 +29,20 @@ for path in \
   "docs/plans/2026-06-08-twilio-sms-baseline.md" \
   "docs/plans/2026-06-09-make-gate-targets.md" \
   "docs/plans/2026-06-09-scripted-baseline-check.md" \
+  "docs/plans/2026-06-10-message-body-utf8-validation.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
+
+if ! grep -Fq "utf8.ValidString(config.MessageBody)" "$ROOT_DIR/main.go"; then
+  printf '%s\n' "main.go must reject invalid UTF-8 MESSAGE_BODY values." >&2
+  exit 1
+fi
+
+if ! grep -Fq "TestLoadConfigRejectsInvalidUTF8MessageBody" "$ROOT_DIR/main_test.go"; then
+  printf '%s\n' "main_test.go must cover invalid UTF-8 MESSAGE_BODY values." >&2
+  exit 1
+fi
 
 if ! grep -Fq "scripts/check-baseline.sh" "$MAKEFILE"; then
   printf '%s\n' "Makefile must run scripts/check-baseline.sh from make check." >&2
@@ -52,11 +63,19 @@ for documented in \
   "TWILIO_AUTH_TOKEN" \
   "DRY_RUN=1" \
   "MESSAGE_BODY" \
+  "invalid UTF-8" \
   "go test ./..." \
   "make check" \
   "scripts/check-baseline.sh"; do
   if ! grep -Fq "$documented" "$README"; then
     printf '%s\n' "README must document $documented." >&2
+    exit 1
+  fi
+done
+
+for doc in "SECURITY.md" "VISION.md" "CHANGES.md"; do
+  if ! grep -Fq "invalid UTF-8" "$ROOT_DIR/$doc"; then
+    printf '%s\n' "$doc must document invalid UTF-8 MESSAGE_BODY validation." >&2
     exit 1
   fi
 done
