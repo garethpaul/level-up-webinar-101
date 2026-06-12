@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	twilio "github.com/twilio/twilio-go"
@@ -13,6 +14,7 @@ import (
 
 const defaultMessageBody = "Hello from Golang!"
 const maxMessageBodyCharacters = 1600
+const twilioRequestTimeout = 10 * time.Second
 
 type smsConfig struct {
 	ToPhoneNumber   string
@@ -187,6 +189,7 @@ func sendSMS(config smsConfig) error {
 		Password:   config.AuthToken,
 		AccountSid: config.AccountSID,
 	})
+	configureTwilioClient(client)
 
 	params := &openapi.CreateMessageParams{}
 	params.SetTo(config.ToPhoneNumber)
@@ -195,4 +198,8 @@ func sendSMS(config smsConfig) error {
 
 	_, err := client.Api.CreateMessage(params)
 	return err
+}
+
+func configureTwilioClient(client *twilio.RestClient) {
+	client.SetTimeout(twilioRequestTimeout)
 }

@@ -58,6 +58,8 @@ shell history-safe prompt. Phone numbers should use E.164 format, such as `+1555
 The recipient and Twilio sender phone numbers must be different.
 `TWILIO_ACCOUNT_SID` should use Twilio's `AC`-prefixed Account SID format.
 `TWILIO_AUTH_TOKEN` should use Twilio's 32-character hexadecimal Auth Token format.
+Live sends apply an explicit 10-second Twilio request timeout before message
+creation.
 
 ```bash
 export TO_PHONE_NUMBER="+15558675310"
@@ -81,7 +83,7 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 
 ## Testing and Verification
 
-- `make lint` verifies Go formatting with `gofmt`.
+- `make lint` verifies Go formatting with `gofmt` and runs `go vet ./...`.
 - `make test` verifies Go module checksums and runs the unit tests.
 - `make build` compiles the local package.
 - `scripts/check-baseline.sh` verifies required repository files, Make target
@@ -90,6 +92,9 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 - `make check` runs `make lint`, `make test`, `make build`, and
   `scripts/check-baseline.sh`.
 - `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
+- Pinned `ubuntu-24.04` GitHub Actions runs `make check` with Go `1.24.x`.
+  Hosted validation uses injected sender tests without Twilio credentials, real
+  phone numbers, outbound SMS requests, or live API calls.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

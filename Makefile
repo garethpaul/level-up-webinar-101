@@ -5,6 +5,7 @@ check: lint test build
 
 lint:
 	test -z "$$(gofmt -l *.go)"
+	go vet ./...
 
 test:
 	go mod verify

@@ -2,6 +2,9 @@
 
 ## 2026-06-10
 
+- Added and tested an explicit 10-second timeout on the Twilio REST client.
+- Added `go vet ./...` and pinned, read-only Go 1.24 hosted validation for the
+  canonical `make check` gate without live Twilio access.
 - Rejected invalid UTF-8 `MESSAGE_BODY` values by name before building a
   Twilio send request.
 

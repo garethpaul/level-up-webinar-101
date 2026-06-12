@@ -5,7 +5,29 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
+
+	twilio "github.com/twilio/twilio-go"
+	twilioclient "github.com/twilio/twilio-go/client"
 )
+
+func TestConfigureTwilioClientSetsRequestTimeout(t *testing.T) {
+	client := twilio.NewRestClientWithParams(twilio.ClientParams{
+		Username:   testAccountSID(),
+		Password:   testAuthToken(),
+		AccountSid: testAccountSID(),
+	})
+
+	configureTwilioClient(client)
+
+	baseClient, ok := client.RequestHandler.Client.(*twilioclient.Client)
+	if !ok {
+		t.Fatalf("expected default Twilio client, got %T", client.RequestHandler.Client)
+	}
+	if baseClient.HTTPClient.Timeout != 10*time.Second {
+		t.Fatalf("expected 10 second Twilio timeout, got %s", baseClient.HTTPClient.Timeout)
+	}
+}
 
 func TestLoadConfigRequiresPhoneNumbers(t *testing.T) {
 	_, err := loadConfig(mapLookup(map[string]string{

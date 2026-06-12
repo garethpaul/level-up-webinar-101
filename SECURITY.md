@@ -27,11 +27,16 @@ Helpful reports include:
 - This repository appears to be a public sample, documentation, or utility project. The active security scope is the code and documentation on the default branch.
 - Review found external API integrations or credential-adjacent configuration; changes in those areas should receive security-focused review before merge.
 - The sample now uses `go.mod` and `go.sum` for Twilio SDK dependency metadata. Run `make check` after Go, dependency, or documentation changes.
+- The pinned Linux workflow runs formatting, `go vet`, module verification,
+  injected sender tests, and builds without Twilio credentials, real phone
+  numbers, outbound SMS requests, or live API calls.
 - Required real-send values are `TO_PHONE_NUMBER`, `TWILIO_PHONE_NUMBER`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`; reports should note whether failures expose these values.
 - `DRY_RUN=1` should validate non-secret E.164-style phone-number configuration without sending SMS or printing phone numbers, account SIDs, or auth tokens.
 - Ambiguous `DRY_RUN` values should fail closed by naming `DRY_RUN` without echoing the configured value.
 - Phone number validation errors should name environment variables rather than echoing configured phone number values.
 - Matching sender/recipient phone number errors should name `TO_PHONE_NUMBER` and `TWILIO_PHONE_NUMBER` without echoing the shared value.
+- Keep the explicit 10-second Twilio request timeout applied before live sends
+  so dependency defaults cannot introduce an unbounded request.
 - Real-send Account SID validation errors should name `TWILIO_ACCOUNT_SID` rather than echoing configured values.
 - Real-send Auth Token validation errors should name `TWILIO_AUTH_TOKEN` rather than echoing configured values.
 - All-zero Twilio Account SID and Auth Token placeholder-shaped credentials should be rejected by name rather than echoing configured values.
