@@ -37,6 +37,7 @@ Priority:
   pushing changes
 - Keep `go vet ./...` and pinned, read-only Go 1.24 hosted validation in the
   canonical gate without contacting Twilio
+- Keep hosted source retrieval credential-free after checkout
 - Keep `scripts/check-baseline.sh` green as repository metadata and local
   hygiene evolve
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers

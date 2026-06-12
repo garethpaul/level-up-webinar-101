@@ -33,6 +33,7 @@ for path in \
   "docs/plans/2026-06-10-message-body-utf8-validation.md" \
   "docs/plans/2026-06-10-explicit-twilio-timeout.md" \
   "docs/plans/2026-06-10-hosted-go-validation.md" \
+  "docs/plans/2026-06-12-checkout-credential-boundary.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
@@ -129,6 +130,37 @@ for workflow_value in \
     exit 1
   fi
 done
+
+workflow_files=$(find "$ROOT_DIR/.github/workflows" -mindepth 1 -maxdepth 1 -type f -print | sort)
+if [ "$workflow_files" != "$WORKFLOW" ]; then
+  printf '%s\n' "Workflow inventory must contain only .github/workflows/check.yml." >&2
+  exit 1
+fi
+
+if [ "$(grep -Fc "actions/checkout@" "$WORKFLOW")" -ne 1 ] ||
+   [ "$(grep -Fc "persist-credentials:" "$WORKFLOW")" -ne 1 ] ||
+   ! grep -Fq "persist-credentials: false" "$WORKFLOW" ||
+   grep -Fq "persist-credentials: true" "$WORKFLOW"; then
+  printf '%s\n' "Check workflow must use one pinned credential-free checkout." >&2
+  exit 1
+fi
+
+CHECKOUT_PLAN="$ROOT_DIR/docs/plans/2026-06-12-checkout-credential-boundary.md"
+if ! grep -Fq "status: completed" "$CHECKOUT_PLAN" ||
+   ! grep -Fq "persist-credentials: false" "$CHECKOUT_PLAN" ||
+   ! grep -Fq "hostile mutations rejected" "$CHECKOUT_PLAN"; then
+  printf '%s\n' "Checkout credential plan must record completed verification." >&2
+  exit 1
+fi
+
+guidance=$(cat "$ROOT_DIR/README.md" "$ROOT_DIR/SECURITY.md" "$ROOT_DIR/VISION.md" "$ROOT_DIR/CHANGES.md" | tr '\n' ' ' | tr -s '[:space:]' ' ' | tr '[:upper:]' '[:lower:]')
+case "$guidance" in
+  *"checkout credentials are not persisted"*"credential-free checkout"*) ;;
+  *)
+    printf '%s\n' "Repository guidance must document the credential-free checkout boundary." >&2
+    exit 1
+    ;;
+esac
 
 for target in "lint:" "test:" "build:" "fmt:" "check:"; do
   if ! grep -Fq "$target" "$MAKEFILE"; then
