@@ -21,6 +21,8 @@
 - Go test all packages: `go test ./...`
 - Go vet all packages: `go vet ./...`
 - Go build all packages: `go build ./...`
+- Use Go 1.25.11 or newer; hosted validation pins 1.25.11 while local checks
+  reject vulnerable earlier Go releases.
 - If a command above skips because a platform toolchain is missing, verify on a machine with that SDK before claiming platform behavior is tested.
 
 ## Coding conventions

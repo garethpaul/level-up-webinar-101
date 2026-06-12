@@ -35,7 +35,8 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Go 1.24 or newer
+- Go 1.25.11 or newer; earlier Go 1.25 patch releases contain reachable
+  standard-library vulnerabilities in the live Twilio request path
 
 ### Setup
 
@@ -92,7 +93,8 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 - `make check` runs `make lint`, `make test`, `make build`, and
   `scripts/check-baseline.sh`.
 - `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
-- Pinned `ubuntu-24.04` GitHub Actions runs `make check` with Go `1.24.x`.
+- Pinned, credential-free `ubuntu-24.04` GitHub Actions runs `make check` with
+  patched Go `1.25.11` and read-only repository permissions.
   Hosted validation uses injected sender tests without Twilio credentials, real
   phone numbers, outbound SMS requests, or live API calls.
 

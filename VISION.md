@@ -35,8 +35,8 @@ Priority:
 - Reject ambiguous `DRY_RUN` values instead of treating typos as real sends
 - Keep `make lint`, `make test`, `make build`, and `make check` green before
   pushing changes
-- Keep `go vet ./...` and pinned, read-only Go 1.24 hosted validation in the
-  canonical gate without contacting Twilio
+- Keep `go vet ./...` and pinned, credential-free, read-only Go 1.25.11 hosted
+  validation in the canonical gate without contacting Twilio
 - Keep `scripts/check-baseline.sh` green as repository metadata and local
   hygiene evolve
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers

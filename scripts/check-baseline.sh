@@ -18,6 +18,7 @@ require_file() {
 for path in \
   ".gitignore" \
   ".github/workflows/check.yml" \
+  "AGENTS.md" \
   "CHANGES.md" \
   "Makefile" \
   "README.md" \
@@ -33,6 +34,7 @@ for path in \
   "docs/plans/2026-06-10-message-body-utf8-validation.md" \
   "docs/plans/2026-06-10-explicit-twilio-timeout.md" \
   "docs/plans/2026-06-10-hosted-go-validation.md" \
+  "docs/plans/2026-06-12-patched-go-toolchain.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
@@ -78,10 +80,42 @@ for workflow_value in \
   "timeout-minutes: 10" \
   "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" \
   "actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c" \
-  "go-version: \"1.24.x\"" \
+  "go-version: \"1.25.11\"" \
   "run: make check"; do
   if ! grep -Fq "$workflow_value" "$WORKFLOW"; then
     printf '%s\n' "Check workflow must keep $workflow_value" >&2
+    exit 1
+  fi
+done
+
+if [ "$(grep -Ec '^[[:space:]]*permissions:' "$WORKFLOW")" -ne 1 ] || \
+   grep -Eq '^[[:space:]]+[A-Za-z-]+:[[:space:]]+write[[:space:]]*$' "$WORKFLOW" || \
+   [ "$(grep -Ec '^[[:space:]]*persist-credentials:' "$WORKFLOW")" -ne 1 ] || \
+   ! grep -Fq 'persist-credentials: false' "$WORKFLOW"; then
+  printf '%s\n' "Check workflow must keep one read-only permission block and credential-free checkout." >&2
+  exit 1
+fi
+
+workflow_actions=$(sed -n 's/^[[:space:]]*-\{0,1\}[[:space:]]*uses:[[:space:]]*\([^[:space:]#]*\).*$/\1/p' "$WORKFLOW")
+expected_actions=$(printf '%s\n' \
+  'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10' \
+  'actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c')
+if [ "$workflow_actions" != "$expected_actions" ]; then
+  printf '%s\n' "Check workflow must use only the expected pinned checkout and setup-go actions." >&2
+  exit 1
+fi
+
+AGENTS="$ROOT_DIR/AGENTS.md"
+for guidance in \
+  "go test ./..." \
+  "go vet ./..." \
+  "go build ./..." \
+  "TO_PHONE_NUMBER" \
+  "TWILIO_PHONE_NUMBER" \
+  "TWILIO_ACCOUNT_SID" \
+  "TWILIO_AUTH_TOKEN"; do
+  if ! grep -Fq "$guidance" "$AGENTS"; then
+    printf '%s\n' "AGENTS.md must preserve $guidance guidance." >&2
     exit 1
   fi
 done
@@ -119,15 +153,38 @@ for doc in "SECURITY.md" "VISION.md" "CHANGES.md"; do
   fi
 done
 
+if ! grep -Fq "credential-free" "$README" || \
+   ! grep -Fq "credential-free" "$ROOT_DIR/VISION.md" || \
+   ! grep -Fq "credential-free" "$ROOT_DIR/CHANGES.md" || \
+   ! grep -Fq "disables checkout" "$ROOT_DIR/SECURITY.md"; then
+  printf '%s\n' "Docs must preserve the credential-free hosted validation boundary." >&2
+  exit 1
+fi
+
 for module_line in \
   "module github.com/garethpaul/level-up-webinar-101" \
-  "go 1.24" \
+  "go 1.25.11" \
   "github.com/twilio/twilio-go v1.30.9"; do
   if ! grep -Fq "$module_line" "$ROOT_DIR/go.mod"; then
     printf '%s\n' "go.mod must keep module baseline: $module_line" >&2
     exit 1
   fi
 done
+
+selected_go_version=$(go env GOVERSION | sed 's/^go//')
+if ! printf '%s\n' "$selected_go_version" | awk -F. '
+  $1 > 1 || ($1 == 1 && ($2 > 25 || ($2 == 25 && $3 >= 11))) { valid = 1 }
+  END { exit valid ? 0 : 1 }
+'; then
+  printf '%s\n' "Verification requires patched Go 1.25.11 or newer." >&2
+  exit 1
+fi
+
+if ! grep -Fq "status: completed" "$ROOT_DIR/docs/plans/2026-06-12-patched-go-toolchain.md" || \
+   ! grep -Fq "govulncheck" "$ROOT_DIR/docs/plans/2026-06-12-patched-go-toolchain.md"; then
+  printf '%s\n' "Patched Go toolchain plan must record completed vulnerability validation." >&2
+  exit 1
+fi
 
 for ignored in ".env" ".env.*" ".vscode/" ".idea/" "*.iml" "*.log" "coverage.out" "level-up-webinar-101"; do
   if ! grep -Fq "$ignored" "$GITIGNORE"; then
