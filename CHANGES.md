@@ -1,10 +1,23 @@
 # Changes
 
+## 2026-06-12
+
+- Added pinned govulncheck v1.3.0 source scanning to the canonical local and
+  hosted `make check` gate.
+- Made every Make target execute from the repository root so external-working-
+  directory verification uses the same commands.
+- Hardened the static baseline against scanner removal, floating versions,
+  duplicate or bypassed scans, incomplete plan evidence, and nonportable Make
+  wrappers.
+
 ## 2026-06-10
 
+- Added redacted Twilio send errors that preserve Go error unwrapping without exposing provider details.
 - Added and tested an explicit 10-second timeout on the Twilio REST client.
-- Added `go vet ./...` and pinned, read-only Go 1.24 hosted validation for the
-  canonical `make check` gate without live Twilio access.
+- Added `go vet ./...` and pinned, credential-free, read-only Go 1.25.11 hosted
+  validation for the canonical `make check` gate without live Twilio access.
+- Raised the module toolchain floor to Go 1.25.11 after `govulncheck` found
+  reachable standard-library vulnerabilities in the Twilio request path.
 - Rejected invalid UTF-8 `MESSAGE_BODY` values by name before building a
   Twilio send request.
 
