@@ -30,6 +30,8 @@ Helpful reports include:
 - The pinned Linux workflow runs formatting, `go vet`, module verification,
   injected sender tests, and builds without Twilio credentials, real phone
   numbers, outbound SMS requests, or live API calls.
+- Hosted verification uses a credential-free checkout so its read-only token is
+  not retained in the runner's Git configuration.
 - Required real-send values are `TO_PHONE_NUMBER`, `TWILIO_PHONE_NUMBER`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`; reports should note whether failures expose these values.
 - `DRY_RUN=1` should validate non-secret E.164-style phone-number configuration without sending SMS or printing phone numbers, account SIDs, or auth tokens.
 - Ambiguous `DRY_RUN` values should fail closed by naming `DRY_RUN` without echoing the configured value.
