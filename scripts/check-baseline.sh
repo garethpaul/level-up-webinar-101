@@ -59,6 +59,50 @@ if ! grep -Fq "TestConfigureTwilioClientSetsRequestTimeout" "$ROOT_DIR/main_test
   exit 1
 fi
 
+TIMEOUT_PLAN="$ROOT_DIR/docs/plans/2026-06-10-explicit-twilio-timeout.md"
+timeout_status_count=$(grep -Ec '^status: completed$' "$TIMEOUT_PLAN" || true)
+timeout_work=$(awk '
+  /^## Work Completed$/ { found = 1; next }
+  /^## / && found { exit }
+  found { print }
+' "$TIMEOUT_PLAN")
+timeout_verification=$(awk '
+  /^## Verification Completed$/ { found = 1; next }
+  /^## / && found { exit }
+  found { print }
+' "$TIMEOUT_PLAN")
+
+if [ "$timeout_status_count" -ne 1 ] || [ -z "$timeout_work" ]; then
+  printf '%s\n' "Twilio timeout plan must record one completed status and completed work." >&2
+  exit 1
+fi
+
+if [ -z "$timeout_verification" ] || printf '%s\n' "$timeout_verification" | grep -Eiq '\b(pending|todo|tbd|not run)\b'; then
+  printf '%s\n' "Twilio timeout plan must record finished verification without pending markers." >&2
+  exit 1
+fi
+
+for evidence in \
+  "make check" \
+  "gofmt" \
+  "go vet ./..." \
+  "go mod verify" \
+  "go test ./..." \
+  "go build ./..." \
+  "scripts/check-baseline.sh" \
+  "git diff --check" \
+  "27287294148" \
+  "27402325505" \
+  "58653e513077cdfae819dee89fe70ab4cc48d8e9" \
+  "const twilioRequestTimeout = 10 * time.Second" \
+  "client.SetTimeout(twilioRequestTimeout)" \
+  "TestConfigureTwilioClientSetsRequestTimeout"; do
+  if ! printf '%s\n' "$timeout_verification" | grep -Fq "$evidence"; then
+    printf '%s\n' "Twilio timeout plan must preserve verification evidence: $evidence" >&2
+    exit 1
+  fi
+done
+
 if ! grep -Fq "scripts/check-baseline.sh" "$MAKEFILE"; then
   printf '%s\n' "Makefile must run scripts/check-baseline.sh from make check." >&2
   exit 1
