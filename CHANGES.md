@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-06-12
+
+- Added pinned govulncheck v1.3.0 source scanning to the canonical local and
+  hosted `make check` gate.
+- Made every Make target execute from the repository root so external-working-
+  directory verification uses the same commands.
+- Hardened the static baseline against scanner removal, floating versions,
+  duplicate or bypassed scans, incomplete plan evidence, and nonportable Make
+  wrappers.
+
 ## 2026-06-10
 
 - Added and tested an explicit 10-second timeout on the Twilio REST client.

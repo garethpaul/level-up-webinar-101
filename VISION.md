@@ -37,6 +37,8 @@ Priority:
   pushing changes
 - Keep `go vet ./...` and pinned, credential-free, read-only Go 1.25.11 hosted
   validation in the canonical gate without contacting Twilio
+- Keep pinned `govulncheck` source analysis in the canonical local and hosted
+  gate, with zero reachable known vulnerabilities
 - Keep `scripts/check-baseline.sh` green as repository metadata and local
   hygiene evolve
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers

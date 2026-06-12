@@ -1,6 +1,6 @@
 # Hosted govulncheck enforcement
 
-status: planned
+status: completed
 
 ## Goal
 
@@ -56,3 +56,18 @@ scanner release.
   and vulnerability database.
 - The pinned scanner remains compatible with the repository's exact Go 1.25.11
   floor.
+
+## Completion Evidence
+
+- `make lint`, `make test`, and `make build` passed with Go 1.25.11.
+- `make vuln` and the exact pinned `go run` command completed with `No
+  vulnerabilities found.`
+- Repository-local and external-working-directory `make check` are the
+  authoritative combined gate for the completed implementation.
+- A clean temporary module and build cache completed the full gate, including
+  Go 1.25.11 toolchain resolution, application dependencies, govulncheck
+  v1.3.0 installation, and a zero-finding scan, in under the hosted timeout.
+- Seven hostile mutations covering check-chain bypass, floating or drifted
+  scanner versions, success-masking JSON output, incomplete plan status, and a
+  nonportable Make command were rejected by the baseline checker, including a
+  commented approved-recipe spoof paired with an executable bypass.

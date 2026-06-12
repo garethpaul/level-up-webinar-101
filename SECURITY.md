@@ -48,6 +48,13 @@ Helpful reports include:
 
 ## Dependency and Supply Chain Security
 
+The canonical `make check` gate runs
+`golang.org/x/vuln/cmd/govulncheck@v1.3.0` against all source packages on the
+pinned Go 1.25.11 toolchain. Hosted validation must fail on reachable known
+vulnerabilities rather than suppressing or converting findings to a
+success-only output format. The scanner queries the public Go vulnerability
+database with module paths. It does not upload repository source code.
+
 Dependency updates should come from trusted package managers and should keep `go.mod` and `go.sum` in sync. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
 ## Safe Research Guidelines

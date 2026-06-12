@@ -1,18 +1,23 @@
-.PHONY: build check fmt lint test
+.PHONY: build check fmt lint test vuln
 
-check: lint test build
-	./scripts/check-baseline.sh
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
+check: lint test build vuln
+	cd "$(ROOT)" && ./scripts/check-baseline.sh
 
 lint:
-	test -z "$$(gofmt -l *.go)"
-	go vet ./...
+	cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"
+	cd "$(ROOT)" && go vet ./...
 
 test:
-	go mod verify
-	go test ./...
+	cd "$(ROOT)" && go mod verify
+	cd "$(ROOT)" && go test ./...
 
 build:
-	go build ./...
+	cd "$(ROOT)" && go build ./...
+
+vuln:
+	cd "$(ROOT)" && go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
 
 fmt:
-	gofmt -w *.go
+	cd "$(ROOT)" && gofmt -w *.go

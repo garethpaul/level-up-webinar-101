@@ -35,6 +35,7 @@ for path in \
   "docs/plans/2026-06-10-explicit-twilio-timeout.md" \
   "docs/plans/2026-06-10-hosted-go-validation.md" \
   "docs/plans/2026-06-12-patched-go-toolchain.md" \
+  "docs/plans/2026-06-12-hosted-govulncheck.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
@@ -66,8 +67,39 @@ if ! grep -Fq "scripts/check-baseline.sh" "$MAKEFILE"; then
   exit 1
 fi
 
-if ! grep -Fq "go vet ./..." "$MAKEFILE"; then
-  printf '%s\n' "Makefile must run go vet from make lint." >&2
+for make_target in \
+  'ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))' \
+  'check: lint test build vuln' \
+  'lint:' \
+  'test:' \
+  'build:' \
+  'vuln:' \
+  'fmt:'; do
+  if ! grep -Fxq "$make_target" "$MAKEFILE"; then
+    printf '%s\n' "Makefile must preserve exact target $make_target" >&2
+    exit 1
+  fi
+done
+
+tab=$(printf '\t')
+for make_recipe in \
+  'cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"' \
+  'cd "$(ROOT)" && go vet ./...' \
+  'cd "$(ROOT)" && go mod verify' \
+  'cd "$(ROOT)" && go test ./...' \
+  'cd "$(ROOT)" && go build ./...' \
+  'cd "$(ROOT)" && gofmt -w *.go' \
+  'cd "$(ROOT)" && go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...' \
+  'cd "$(ROOT)" && ./scripts/check-baseline.sh'; do
+  if ! grep -Fxq "${tab}${make_recipe}" "$MAKEFILE"; then
+    printf '%s\n' "Makefile must preserve executable recipe $make_recipe" >&2
+    exit 1
+  fi
+done
+
+if grep -Eq 'govulncheck@(latest|master|main)|govulncheck[[:space:]]+\./\.\.\.' "$MAKEFILE" || \
+   [ "$(grep -Fc 'golang.org/x/vuln/cmd/govulncheck@v1.3.0' "$MAKEFILE")" -ne 1 ]; then
+  printf '%s\n' "Makefile must run exactly one pinned govulncheck v1.3.0 source scan." >&2
   exit 1
 fi
 
@@ -120,13 +152,6 @@ for guidance in \
   fi
 done
 
-for target in "lint:" "test:" "build:" "fmt:" "check:"; do
-  if ! grep -Fq "$target" "$MAKEFILE"; then
-    printf '%s\n' "Makefile must expose the $target gate." >&2
-    exit 1
-  fi
-done
-
 for documented in \
   "TO_PHONE_NUMBER" \
   "TWILIO_PHONE_NUMBER" \
@@ -138,6 +163,8 @@ for documented in \
   "invalid UTF-8" \
   "go test ./..." \
   "go vet ./..." \
+  "make vuln" \
+  "govulncheck" \
   "make check" \
   "scripts/check-baseline.sh"; do
   if ! grep -Fq "$documented" "$README"; then
@@ -151,7 +178,18 @@ for doc in "SECURITY.md" "VISION.md" "CHANGES.md"; do
     printf '%s\n' "$doc must document invalid UTF-8 MESSAGE_BODY validation." >&2
     exit 1
   fi
+  if ! grep -Fq "govulncheck" "$ROOT_DIR/$doc"; then
+    printf '%s\n' "$doc must document canonical govulncheck enforcement." >&2
+    exit 1
+  fi
 done
+
+if ! grep -Fq "public Go vulnerability database" "$README" || \
+   ! grep -Fq "does not upload repository source code" "$README" || \
+   ! grep -Fq "does not upload repository source code" "$ROOT_DIR/SECURITY.md"; then
+  printf '%s\n' "README and SECURITY must document the govulncheck database privacy boundary." >&2
+  exit 1
+fi
 
 if ! grep -Fq "credential-free" "$README" || \
    ! grep -Fq "credential-free" "$ROOT_DIR/VISION.md" || \
@@ -185,6 +223,19 @@ if ! grep -Fq "status: completed" "$ROOT_DIR/docs/plans/2026-06-12-patched-go-to
   printf '%s\n' "Patched Go toolchain plan must record completed vulnerability validation." >&2
   exit 1
 fi
+
+GOVULNCHECK_PLAN="$ROOT_DIR/docs/plans/2026-06-12-hosted-govulncheck.md"
+for plan_contract in \
+  "status: completed" \
+  "govulncheck@v1.3.0" \
+  "make vuln" \
+  "make check" \
+  "zero-finding"; do
+  if ! grep -Fq "$plan_contract" "$GOVULNCHECK_PLAN"; then
+    printf '%s\n' "Hosted govulncheck plan must record $plan_contract." >&2
+    exit 1
+  fi
+done
 
 for ignored in ".env" ".env.*" ".vscode/" ".idea/" "*.iml" "*.log" "coverage.out" "level-up-webinar-101"; do
   if ! grep -Fq "$ignored" "$GITIGNORE"; then
