@@ -108,6 +108,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Real sends validate that `TWILIO_AUTH_TOKEN` is a 32-character hexadecimal Twilio Auth Token.
 - All-zero Twilio Account SID and Auth Token placeholder-shaped credentials are rejected by name.
 - `MESSAGE_BODY` values with invalid UTF-8 or more than 1600 characters are rejected by name without echoing the body.
+- Real-send failures return redacted Twilio send errors without printing provider details or phone numbers.
 - Ambiguous `DRY_RUN` values are rejected by name without echoing the configured value.
 - Keep Twilio credentials and real phone numbers in local environment variables or secret stores only.
 

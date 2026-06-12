@@ -33,6 +33,7 @@ for path in \
   "docs/plans/2026-06-10-message-body-utf8-validation.md" \
   "docs/plans/2026-06-10-explicit-twilio-timeout.md" \
   "docs/plans/2026-06-10-hosted-go-validation.md" \
+  "docs/plans/2026-06-12-redacted-twilio-send-errors.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
@@ -56,6 +57,19 @@ fi
 
 if ! grep -Fq "TestConfigureTwilioClientSetsRequestTimeout" "$ROOT_DIR/main_test.go"; then
   printf '%s\n' "main_test.go must cover the configured Twilio request timeout." >&2
+  exit 1
+fi
+
+if ! grep -Fq 'return "send SMS: request failed"' "$ROOT_DIR/main.go" || \
+   ! grep -Fq "func (err smsSendError) Unwrap() error" "$ROOT_DIR/main.go" || \
+   ! grep -Fq "return smsSendError{cause: err}" "$ROOT_DIR/main.go"; then
+  printf '%s\n' "main.go must redact Twilio send errors while preserving unwrapping." >&2
+  exit 1
+fi
+
+if ! grep -Fq "TestRunRedactsAndWrapsSenderError" "$ROOT_DIR/main_test.go" || \
+   ! grep -Fq "errors.Is(err, cause)" "$ROOT_DIR/main_test.go"; then
+  printf '%s\n' "main_test.go must cover redacted, unwrap-capable Twilio send errors." >&2
   exit 1
 fi
 
@@ -102,6 +116,7 @@ for documented in \
   "MESSAGE_BODY" \
   "10-second Twilio request timeout" \
   "invalid UTF-8" \
+  "redacted Twilio send errors" \
   "go test ./..." \
   "go vet ./..." \
   "make check" \
@@ -115,6 +130,13 @@ done
 for doc in "SECURITY.md" "VISION.md" "CHANGES.md"; do
   if ! grep -Fq "invalid UTF-8" "$ROOT_DIR/$doc"; then
     printf '%s\n' "$doc must document invalid UTF-8 MESSAGE_BODY validation." >&2
+    exit 1
+  fi
+done
+
+for doc in "SECURITY.md" "VISION.md" "CHANGES.md"; do
+  if ! grep -Fq "redacted Twilio send errors" "$ROOT_DIR/$doc"; then
+    printf '%s\n' "$doc must document redacted Twilio send errors." >&2
     exit 1
   fi
 done

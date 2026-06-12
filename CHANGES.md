@@ -2,6 +2,7 @@
 
 ## 2026-06-10
 
+- Added redacted Twilio send errors that preserve Go error unwrapping without exposing provider details.
 - Added and tested an explicit 10-second timeout on the Twilio REST client.
 - Added `go vet ./...` and pinned, read-only Go 1.24 hosted validation for the
   canonical `make check` gate without live Twilio access.

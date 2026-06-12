@@ -41,6 +41,7 @@ Helpful reports include:
 - Real-send Auth Token validation errors should name `TWILIO_AUTH_TOKEN` rather than echoing configured values.
 - All-zero Twilio Account SID and Auth Token placeholder-shaped credentials should be rejected by name rather than echoing configured values.
 - Message body validation errors should name `MESSAGE_BODY` rather than echoing oversized or invalid UTF-8 content.
+- Keep redacted Twilio send errors at the CLI boundary while preserving the underlying cause for programmatic inspection.
 - Keep `.env` files, local shell exports, real phone numbers, account SIDs, auth tokens, API keys, and webhook secrets out of git.
 
 

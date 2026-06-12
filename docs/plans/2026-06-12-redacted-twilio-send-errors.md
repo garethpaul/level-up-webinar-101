@@ -1,6 +1,6 @@
 # Redacted Twilio Send Errors
 
-status: planned
+status: completed
 
 ## Context
 
