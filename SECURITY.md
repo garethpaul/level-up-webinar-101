@@ -27,9 +27,11 @@ Helpful reports include:
 - This repository appears to be a public sample, documentation, or utility project. The active security scope is the code and documentation on the default branch.
 - Review found external API integrations or credential-adjacent configuration; changes in those areas should receive security-focused review before merge.
 - The sample now uses `go.mod` and `go.sum` for Twilio SDK dependency metadata. Run `make check` after Go, dependency, or documentation changes.
-- The pinned Linux workflow runs formatting, `go vet`, module verification,
-  injected sender tests, and builds without Twilio credentials, real phone
-  numbers, outbound SMS requests, or live API calls.
+- The pinned Linux workflow uses read-only permissions, disables checkout
+  credential persistence, selects patched Go 1.25.11, and runs formatting,
+  `go vet`, module verification, injected sender tests, and builds without
+  Twilio credentials, real phone numbers, outbound SMS requests, or live API
+  calls.
 - Required real-send values are `TO_PHONE_NUMBER`, `TWILIO_PHONE_NUMBER`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`; reports should note whether failures expose these values.
 - `DRY_RUN=1` should validate non-secret E.164-style phone-number configuration without sending SMS or printing phone numbers, account SIDs, or auth tokens.
 - Ambiguous `DRY_RUN` values should fail closed by naming `DRY_RUN` without echoing the configured value.
@@ -45,6 +47,13 @@ Helpful reports include:
 
 
 ## Dependency and Supply Chain Security
+
+The canonical `make check` gate runs
+`golang.org/x/vuln/cmd/govulncheck@v1.3.0` against all source packages on the
+pinned Go 1.25.11 toolchain. Hosted validation must fail on reachable known
+vulnerabilities rather than suppressing or converting findings to a
+success-only output format. The scanner queries the public Go vulnerability
+database with module paths. It does not upload repository source code.
 
 Dependency updates should come from trusted package managers and should keep `go.mod` and `go.sum` in sync. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
