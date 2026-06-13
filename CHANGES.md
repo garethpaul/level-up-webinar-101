@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-13
+
+- Made every Make verification alias resolve Go commands and the baseline
+  script from the checkout, including absolute Makefile invocations elsewhere.
+
 ## 2026-06-12
 
 - Disabled persisted checkout credentials and enforced the sole pinned

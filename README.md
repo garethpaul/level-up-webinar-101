@@ -91,6 +91,9 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
   metadata, and local secret/editor ignore hygiene.
 - `make check` runs `make lint`, `make test`, `make build`, and
   `scripts/check-baseline.sh`.
+- The Make gates are location-independent. From another directory, pass this
+  checkout's Makefile by absolute path, for example
+  `make -f /path/to/level-up-webinar-101/Makefile check`.
 - `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
 - Pinned `ubuntu-24.04` GitHub Actions runs `make check` with Go `1.24.x`.
   Hosted validation uses injected sender tests without Twilio credentials, real
@@ -122,6 +125,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Run `make lint`, `make test`, `make build`, `scripts/check-baseline.sh`,
   and `make check` before pushing Go, dependency, README, or security-policy
   changes.
+- Use an absolute Makefile path when running those gates outside the checkout.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-09-make-gate-targets.md` for the local gate target guardrail.

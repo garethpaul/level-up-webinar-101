@@ -1,6 +1,6 @@
 # Location-Independent Webinar Verification
 
-status: in progress
+status: completed
 
 ## Context
 
@@ -19,8 +19,8 @@ the repository.
 
 ## Verification Plan
 
-- Run the non-mutating Make gates from the checkout and through an absolute
-  Makefile path from a temporary directory.
+- Run `make check` and the other non-mutating Make gates from the checkout and
+  through an absolute Makefile path from a temporary directory.
 - Run shell syntax, Go formatting/vet/test/build/module verification, checker
   compilation where applicable, and diff checks.
 - Reject root derivation, Go working directory, baseline-script location,
@@ -32,3 +32,15 @@ the repository.
 
 This changes verification path resolution only. Rollback restores the relative
 recipes and removes their checker, plan, and documentation contracts.
+
+## Verification
+
+- `make lint`, `make test`, `make build`, and `make check` passed in root and external-directory
+  runs through an absolute Makefile path.
+- Shell syntax, Go formatting, vet, module verification, unit tests, builds,
+  baseline checks, and `git diff --check` passed.
+- Verification rejected six isolated hostile mutations by their intended
+  contracts: root derivation, Go working directory, baseline-script location,
+  plan status, plan evidence, and README guidance.
+- The intended five-file diff passed secret-pattern, conflict-marker,
+  generated-artifact, and Go/runtime/workflow change audits.

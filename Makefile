@@ -1,18 +1,20 @@
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
 .PHONY: build check fmt lint test
 
 check: lint test build
-	./scripts/check-baseline.sh
+	cd "$(ROOT)" && ./scripts/check-baseline.sh
 
 lint:
-	test -z "$$(gofmt -l *.go)"
-	go vet ./...
+	cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"
+	cd "$(ROOT)" && go vet ./...
 
 test:
-	go mod verify
-	go test ./...
+	cd "$(ROOT)" && go mod verify
+	cd "$(ROOT)" && go test ./...
 
 build:
-	go build ./...
+	cd "$(ROOT)" && go build ./...
 
 fmt:
-	gofmt -w *.go
+	cd "$(ROOT)" && gofmt -w *.go
