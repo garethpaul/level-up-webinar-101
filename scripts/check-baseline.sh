@@ -6,6 +6,26 @@ README="$ROOT_DIR/README.md"
 MAKEFILE="$ROOT_DIR/Makefile"
 GITIGNORE="$ROOT_DIR/.gitignore"
 DOCS_PLANS="$ROOT_DIR/docs/plans"
+EXPECTED_MAKEFILE='ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
+.PHONY: build check fmt lint test
+
+check: lint test build
+	cd "$(ROOT)" && ./scripts/check-baseline.sh
+
+lint:
+	cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"
+	cd "$(ROOT)" && go vet ./...
+
+test:
+	cd "$(ROOT)" && go mod verify
+	cd "$(ROOT)" && go test ./...
+
+build:
+	cd "$(ROOT)" && go build ./...
+
+fmt:
+	cd "$(ROOT)" && gofmt -w *.go'
 
 require_file() {
   path=$1
@@ -34,6 +54,7 @@ for path in \
   "docs/plans/2026-06-10-explicit-twilio-timeout.md" \
   "docs/plans/2026-06-10-hosted-go-validation.md" \
   "docs/plans/2026-06-12-checkout-credential-boundary.md" \
+  "docs/plans/2026-06-13-location-independent-make.md" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
@@ -104,13 +125,8 @@ for evidence in \
   fi
 done
 
-if ! grep -Fq "scripts/check-baseline.sh" "$MAKEFILE"; then
-  printf '%s\n' "Makefile must run scripts/check-baseline.sh from make check." >&2
-  exit 1
-fi
-
-if ! grep -Fq "go vet ./..." "$MAKEFILE"; then
-  printf '%s\n' "Makefile must run go vet from make lint." >&2
+if [ "$(cat "$MAKEFILE")" != "$EXPECTED_MAKEFILE" ]; then
+  printf '%s\n' "Makefile must exactly preserve rooted Go and baseline gates." >&2
   exit 1
 fi
 
@@ -153,6 +169,14 @@ if ! grep -Fq "status: completed" "$CHECKOUT_PLAN" ||
   exit 1
 fi
 
+LOCATION_INDEPENDENT_PLAN="$ROOT_DIR/docs/plans/2026-06-13-location-independent-make.md"
+if ! grep -Fq "status: completed" "$LOCATION_INDEPENDENT_PLAN" ||
+   ! grep -Fq "root and external-directory" "$LOCATION_INDEPENDENT_PLAN" ||
+   ! grep -Fq "six isolated hostile mutations" "$LOCATION_INDEPENDENT_PLAN"; then
+  printf '%s\n' "Location-independent Make plan must record completed root, external, and mutation verification." >&2
+  exit 1
+fi
+
 guidance=$(cat "$ROOT_DIR/README.md" "$ROOT_DIR/SECURITY.md" "$ROOT_DIR/VISION.md" "$ROOT_DIR/CHANGES.md" | tr '\n' ' ' | tr -s '[:space:]' ' ' | tr '[:upper:]' '[:lower:]')
 case "$guidance" in
   *"checkout credentials are not persisted"*"credential-free checkout"*) ;;
@@ -181,6 +205,7 @@ for documented in \
   "go test ./..." \
   "go vet ./..." \
   "make check" \
+  "make -f /path/to/level-up-webinar-101/Makefile check" \
   "scripts/check-baseline.sh"; do
   if ! grep -Fq "$documented" "$README"; then
     printf '%s\n' "README must document $documented." >&2
