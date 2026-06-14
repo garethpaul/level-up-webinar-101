@@ -368,18 +368,25 @@ func TestRunSendsConfiguredMessage(t *testing.T) {
 	}
 }
 
-func TestRunWrapsSenderError(t *testing.T) {
+func TestRunRedactsAndWrapsSenderError(t *testing.T) {
+	cause := errors.New("twilio rejected request for +15558675310")
 	err := run(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     "+15558675310",
 		"TWILIO_PHONE_NUMBER": "+15558675309",
 		"TWILIO_ACCOUNT_SID":  testAccountSID(),
 		"TWILIO_AUTH_TOKEN":   testAuthToken(),
 	}), &bytes.Buffer{}, func(smsConfig) error {
-		return errors.New("twilio rejected request")
+		return cause
 	})
 
-	if err == nil || !strings.Contains(err.Error(), "send SMS: twilio rejected request") {
-		t.Fatalf("expected wrapped sender error, got %v", err)
+	if err == nil || err.Error() != "send SMS: request failed" {
+		t.Fatalf("expected redacted sender error, got %v", err)
+	}
+	if strings.Contains(err.Error(), "twilio rejected") || strings.Contains(err.Error(), "+15558675310") {
+		t.Fatalf("sender error should not expose provider details, got %q", err)
+	}
+	if !errors.Is(err, cause) {
+		t.Fatalf("expected redacted error to unwrap to sender cause")
 	}
 }
 
