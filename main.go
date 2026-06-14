@@ -25,6 +25,18 @@ type smsConfig struct {
 	DryRun          bool
 }
 
+type smsSendError struct {
+	cause error
+}
+
+func (err smsSendError) Error() string {
+	return "send SMS: request failed"
+}
+
+func (err smsSendError) Unwrap() error {
+	return err.cause
+}
+
 func main() {
 	if err := run(os.Getenv, os.Stdout, sendSMS); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -44,7 +56,7 @@ func run(lookup func(string) string, output io.Writer, send func(smsConfig) erro
 	}
 
 	if err := send(config); err != nil {
-		return fmt.Errorf("send SMS: %w", err)
+		return smsSendError{cause: err}
 	}
 
 	fmt.Fprintln(output, "SMS sent successfully!")
