@@ -56,7 +56,7 @@ vulnerabilities rather than suppressing or converting findings to a
 success-only output format. The scanner queries the public Go vulnerability
 database with module paths. It does not upload repository source code.
 
-Dependency updates should come from trusted package managers and should keep `go.mod` and `go.sum` in sync. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
+Dependency updates should come from trusted package managers and should keep `go.mod` and `go.sum` in sync. The selected Twilio dependency graph pins JWT v5.3.1 and verifies that path through the module tooling. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
 ## Safe Research Guidelines
 

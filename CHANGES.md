@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-06-16
+
+- Updated the Twilio runtime graph from JWT v5.2.2 to JWT v5.3.1 while keeping
+  Twilio Go v1.30.9 and Go 1.25.11 fixed.
+- Added static dependency, documentation, and completed-plan contracts that
+  reject JWT rollback or unverifiable module-graph evidence.
+
 ## 2026-06-13
 
 - Made every Make verification alias resolve Go commands and the baseline

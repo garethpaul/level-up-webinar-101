@@ -58,6 +58,10 @@ includes this scan locally and in hosted Go 1.25.11 validation. Govulncheck
 queries the public Go vulnerability database using module paths.
 It does not upload repository source code.
 
+Twilio Go v1.30.9 remains the direct SDK dependency. Its runtime graph is
+locked to JWT v5.3.1 so parser and signature-handling corrections are selected
+without changing the sample's Twilio integration.
+
 ## Running or Using the Project
 
 Set the required environment variables before sending a real SMS. Populate

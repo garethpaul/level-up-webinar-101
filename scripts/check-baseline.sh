@@ -63,6 +63,9 @@ for path in \
   "docs/plans/2026-06-12-patched-go-toolchain.md" \
   "docs/plans/2026-06-12-hosted-govulncheck.md" \
   "docs/plans/2026-06-14-integrate-webinar-security-stack.md" \
+  "docs/plans/2026-06-16-jwt-transitive-update.md" \
+  "scripts/check-jwt-dependency.sh" \
+  "scripts/test-jwt-dependency.sh" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
 done
@@ -358,6 +361,9 @@ if [ "$(grep -Ec '^status: completed$' "$INTEGRATION_PLAN" || true)" -ne 1 ] || 
   printf '%s\n' "Security stack integration plan must record completed conflict resolution and verification." >&2
   exit 1
 fi
+
+"$ROOT_DIR/scripts/check-jwt-dependency.sh" "$ROOT_DIR"
+"$ROOT_DIR/scripts/test-jwt-dependency.sh"
 
 for ignored in ".env" ".env.*" ".vscode/" ".idea/" "*.iml" "*.log" "coverage.out" "level-up-webinar-101"; do
   if ! grep -Fq "$ignored" "$GITIGNORE"; then

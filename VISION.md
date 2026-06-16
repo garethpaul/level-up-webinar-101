@@ -40,6 +40,8 @@ Priority:
   validation in the canonical gate without contacting Twilio
 - Keep pinned `govulncheck` source analysis in the canonical local and hosted
   gate, with zero reachable known vulnerabilities
+- Keep Twilio Go v1.30.9's runtime graph on JWT v5.3.1 and reject dependency
+  rollback through the static baseline
 - Keep `scripts/check-baseline.sh` green as repository metadata and local
   hygiene evolve
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers
