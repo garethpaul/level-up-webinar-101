@@ -11,7 +11,7 @@ write_valid_fixture() {
   cat >"$TMP_ROOT/fixture/go.mod" <<'EOF'
 module example.com/fixture
 
-go 1.25.11
+go 1.26.4
 
 require github.com/twilio/twilio-go v1.30.9
 

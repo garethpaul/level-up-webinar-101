@@ -35,7 +35,7 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Go 1.25.11 or newer; earlier Go 1.25 patch releases contain reachable
+- Go 1.26.4 or newer; earlier Go 1.26 patch releases contain reachable
   standard-library vulnerabilities in the live Twilio request path
 
 ### Setup
@@ -54,13 +54,18 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 `make vuln` runs the pinned official Go source scanner
 `golang.org/x/vuln/cmd/govulncheck@v1.3.0`. The canonical `make check` gate
-includes this scan locally and in hosted Go 1.25.11 validation. Govulncheck
+includes this scan locally and in hosted Go 1.26.4 validation. Govulncheck
 queries the public Go vulnerability database using module paths.
 It does not upload repository source code.
 
 Twilio Go v1.30.9 remains the direct SDK dependency. Its runtime graph is
 locked to JWT v5.3.1 so parser and signature-handling corrections are selected
 without changing the sample's Twilio integration.
+
+This repository is a single-shot CLI. It does not expose HTTP routes, browser
+sessions, CSRF state, return URLs, webhook handlers, user-controlled request
+URLs, or JWT parsing/verification. The JWT module is transitive Twilio SDK code;
+this sample uses basic-auth REST requests and does not accept JWTs.
 
 ## Running or Using the Project
 
@@ -71,7 +76,8 @@ The recipient and Twilio sender phone numbers must be different.
 `TWILIO_ACCOUNT_SID` should use Twilio's `AC`-prefixed Account SID format.
 `TWILIO_AUTH_TOKEN` should use Twilio's 32-character hexadecimal Auth Token format.
 Live sends apply an explicit 10-second Twilio request timeout before message
-creation.
+creation, do not follow redirects or retry failures, ignore ambient Twilio
+edge/region overrides, and reject provider responses larger than 256 KiB.
 
 ```bash
 export TO_PHONE_NUMBER="+15558675310"
@@ -108,9 +114,9 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
 - The Make gates are location-independent. From another directory, pass this
   checkout's Makefile by absolute path, for example
   `make -f /path/to/level-up-webinar-101/Makefile check`.
-- `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, sender success, and sender error wrapping without contacting Twilio.
+- `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, fixed Twilio routing, exactly-one provider attempts, bounded provider responses, sender success, and sender error wrapping without contacting Twilio.
 - Pinned, credential-free `ubuntu-24.04` GitHub Actions runs `make check` with
-  patched Go `1.25.11` and read-only repository permissions.
+  patched Go `1.26.4` and read-only repository permissions.
   Hosted validation uses injected sender tests without Twilio credentials, real
   phone numbers, outbound SMS requests, or live API calls. Checkout credentials
   are not persisted after source retrieval.

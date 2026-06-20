@@ -65,6 +65,8 @@ for path in \
   "docs/plans/2026-06-14-integrate-webinar-security-stack.md" \
   "docs/plans/2026-06-16-jwt-transitive-update.md" \
   "scripts/check-jwt-dependency.sh" \
+  "scripts/check-go-version.sh" \
+  "scripts/test-go-version.sh" \
   "scripts/test-jwt-dependency.sh" \
   "scripts/check-baseline.sh"; do
   require_file "$path"
@@ -91,6 +93,20 @@ if ! grep -Fq "TestConfigureTwilioClientSetsRequestTimeout" "$ROOT_DIR/main_test
   printf '%s\n' "main_test.go must cover the configured Twilio request timeout." >&2
   exit 1
 fi
+
+for provider_contract in \
+  'const maxTwilioResponseBytes = 256 * 1024' \
+  'client.Edge = ""' \
+  'client.Region = ""' \
+  'return http.ErrUseLastResponse' \
+  'TestNewTwilioRestClientIgnoresUnsupportedRoutingEnvironment' \
+  'TestSendSMSWithClientUsesOfficialEndpointAndDoesNotRetry' \
+  'TestSendSMSWithClientRejectsOversizedProviderResponse'; do
+  if ! grep -Fq "$provider_contract" "$ROOT_DIR/main.go" "$ROOT_DIR/main_test.go"; then
+    printf '%s\n' "Twilio provider boundary must preserve: $provider_contract" >&2
+    exit 1
+  fi
+done
 
 TIMEOUT_PLAN="$ROOT_DIR/docs/plans/2026-06-10-explicit-twilio-timeout.md"
 timeout_status_count=$(grep -Ec '^status: completed$' "$TIMEOUT_PLAN" || true)
@@ -172,9 +188,9 @@ for workflow_value in \
   "cancel-in-progress: true" \
   "runs-on: ubuntu-24.04" \
   "timeout-minutes: 10" \
-  "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" \
+  "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" \
   "actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c" \
-  "go-version: \"1.25.11\"" \
+  "go-version: \"1.26.4\"" \
   "run: make check"; do
   if ! grep -Fq "$workflow_value" "$WORKFLOW"; then
     printf '%s\n' "Check workflow must keep $workflow_value" >&2
@@ -236,7 +252,7 @@ fi
 
 workflow_actions=$(sed -n 's/^[[:space:]]*-\{0,1\}[[:space:]]*uses:[[:space:]]*\([^[:space:]#]*\).*$/\1/p' "$WORKFLOW")
 expected_actions=$(printf '%s\n' \
-  'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10' \
+  'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0' \
   'actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c')
 if [ "$workflow_actions" != "$expected_actions" ]; then
   printf '%s\n' "Check workflow must use only the expected pinned checkout and setup-go actions." >&2
@@ -266,6 +282,8 @@ for documented in \
   "DRY_RUN=1" \
   "MESSAGE_BODY" \
   "10-second Twilio request timeout" \
+  "256 KiB" \
+  "single-shot CLI" \
   "invalid UTF-8" \
   "redacted Twilio send errors" \
   "go test ./..." \
@@ -316,7 +334,7 @@ fi
 
 for module_line in \
   "module github.com/garethpaul/level-up-webinar-101" \
-  "go 1.25.11" \
+  "go 1.26.4" \
   "github.com/twilio/twilio-go v1.30.9"; do
   if ! grep -Fq "$module_line" "$ROOT_DIR/go.mod"; then
     printf '%s\n' "go.mod must keep module baseline: $module_line" >&2
@@ -324,14 +342,8 @@ for module_line in \
   fi
 done
 
-selected_go_version=$(go env GOVERSION | sed 's/^go//')
-if ! printf '%s\n' "$selected_go_version" | awk -F. '
-  $1 > 1 || ($1 == 1 && ($2 > 25 || ($2 == 25 && $3 >= 11))) { valid = 1 }
-  END { exit valid ? 0 : 1 }
-'; then
-  printf '%s\n' "Verification requires patched Go 1.25.11 or newer." >&2
-  exit 1
-fi
+"$ROOT_DIR/scripts/check-go-version.sh" "$(go env GOVERSION)"
+"$ROOT_DIR/scripts/test-go-version.sh"
 
 if ! grep -Fq "status: completed" "$ROOT_DIR/docs/plans/2026-06-12-patched-go-toolchain.md" || \
    ! grep -Fq "govulncheck" "$ROOT_DIR/docs/plans/2026-06-12-patched-go-toolchain.md"; then

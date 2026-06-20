@@ -1,20 +1,26 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	twilio "github.com/twilio/twilio-go"
+	twilioclient "github.com/twilio/twilio-go/client"
 	openapi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 const defaultMessageBody = "Hello from Golang!"
 const maxMessageBodyCharacters = 1600
+const maxTwilioResponseBytes = 256 * 1024
 const twilioRequestTimeout = 10 * time.Second
+
+var errTwilioResponseTooLarge = errors.New("Twilio response exceeds size limit")
 
 type smsConfig struct {
 	ToPhoneNumber   string
@@ -27,6 +33,48 @@ type smsConfig struct {
 
 type smsSendError struct {
 	cause error
+}
+
+type boundedReadCloser struct {
+	body      io.ReadCloser
+	remaining int64
+}
+
+type boundedTransport struct {
+	base http.RoundTripper
+}
+
+func (reader *boundedReadCloser) Read(buffer []byte) (int, error) {
+	if reader.remaining == 0 {
+		var probe [1]byte
+		read, err := reader.body.Read(probe[:])
+		if read > 0 {
+			return 0, errTwilioResponseTooLarge
+		}
+		return 0, err
+	}
+	if int64(len(buffer)) > reader.remaining {
+		buffer = buffer[:reader.remaining]
+	}
+	read, err := reader.body.Read(buffer)
+	reader.remaining -= int64(read)
+	return read, err
+}
+
+func (reader *boundedReadCloser) Close() error {
+	return reader.body.Close()
+}
+
+func (transport boundedTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	response, err := transport.base.RoundTrip(request)
+	if err != nil {
+		return nil, err
+	}
+	response.Body = &boundedReadCloser{
+		body:      response.Body,
+		remaining: maxTwilioResponseBytes,
+	}
+	return response, nil
 }
 
 func (err smsSendError) Error() string {
@@ -196,13 +244,31 @@ func parseDryRun(value string) (bool, error) {
 }
 
 func sendSMS(config smsConfig) error {
-	client := twilio.NewRestClientWithParams(twilio.ClientParams{
-		Username:   config.AccountSID,
-		Password:   config.AuthToken,
-		AccountSid: config.AccountSID,
-	})
-	configureTwilioClient(client)
+	client := newTwilioRestClient(config, http.DefaultTransport)
+	return sendSMSWithClient(config, client)
+}
 
+func newTwilioRestClient(config smsConfig, transport http.RoundTripper) *twilio.RestClient {
+	if transport == nil {
+		transport = http.DefaultTransport
+	}
+	baseClient := &twilioclient.Client{
+		Credentials: twilioclient.NewCredentials(config.AccountSID, config.AuthToken),
+		HTTPClient: &http.Client{
+			Transport: boundedTransport{base: transport},
+			Timeout:   twilioRequestTimeout,
+			CheckRedirect: func(*http.Request, []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
+	}
+	baseClient.SetAccountSid(config.AccountSID)
+	client := twilio.NewRestClientWithParams(twilio.ClientParams{Client: baseClient})
+	configureTwilioClient(client)
+	return client
+}
+
+func sendSMSWithClient(config smsConfig, client *twilio.RestClient) error {
 	params := &openapi.CreateMessageParams{}
 	params.SetTo(config.ToPhoneNumber)
 	params.SetFrom(config.FromPhoneNumber)
@@ -214,4 +280,6 @@ func sendSMS(config smsConfig) error {
 
 func configureTwilioClient(client *twilio.RestClient) {
 	client.SetTimeout(twilioRequestTimeout)
+	client.Edge = ""
+	client.Region = ""
 }

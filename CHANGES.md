@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-06-19
+
+- Fixed outbound Twilio routing to the official API host instead of honoring
+  ambient `TWILIO_EDGE` or `TWILIO_REGION` overrides.
+- Added a 256 KiB provider-response limit and fake-provider tests proving one
+  outbound attempt, no redirects, bounded responses, and redacted failures.
+- Raised local and hosted validation to Go 1.26.4 after `govulncheck` found
+  eight reachable standard-library vulnerabilities with Go 1.26.1.
+- Updated the pinned checkout action to official v7.0.0 while preserving
+  read-only permissions and `persist-credentials: false`.
+
 ## 2026-06-16
 
 - Updated the Twilio runtime graph from JWT v5.2.2 to JWT v5.3.1 while keeping

@@ -28,7 +28,7 @@ Helpful reports include:
 - Review found external API integrations or credential-adjacent configuration; changes in those areas should receive security-focused review before merge.
 - The sample now uses `go.mod` and `go.sum` for Twilio SDK dependency metadata. Run `make check` after Go, dependency, or documentation changes.
 - The pinned Linux workflow uses read-only permissions, disables checkout
-  credential persistence, selects patched Go 1.25.11, and runs formatting,
+  credential persistence, selects patched Go 1.26.4, and runs formatting,
   `go vet`, module verification, injected sender tests, and builds without
   Twilio credentials, real phone numbers, outbound SMS requests, or live API
   calls.
@@ -39,6 +39,11 @@ Helpful reports include:
 - Matching sender/recipient phone number errors should name `TO_PHONE_NUMBER` and `TWILIO_PHONE_NUMBER` without echoing the shared value.
 - Keep the explicit 10-second Twilio request timeout applied before live sends
   so dependency defaults cannot introduce an unbounded request.
+- Live sends use the fixed `https://api.twilio.com` endpoint, ignore ambient
+  `TWILIO_EDGE` and `TWILIO_REGION` overrides, do not follow redirects or retry
+  failed requests, and bound provider response bodies to 256 KiB.
+- This single-shot CLI has no inbound HTTP, session, CSRF, return-URL, webhook,
+  SSRF, or JWT verification surface. JWT v5.3.1 is transitive Twilio SDK code.
 - Real-send Account SID validation errors should name `TWILIO_ACCOUNT_SID` rather than echoing configured values.
 - Real-send Auth Token validation errors should name `TWILIO_AUTH_TOKEN` rather than echoing configured values.
 - All-zero Twilio Account SID and Auth Token placeholder-shaped credentials should be rejected by name rather than echoing configured values.
@@ -51,7 +56,7 @@ Helpful reports include:
 
 The canonical `make check` gate runs
 `golang.org/x/vuln/cmd/govulncheck@v1.3.0` against all source packages on the
-pinned Go 1.25.11 toolchain. Hosted validation must fail on reachable known
+pinned Go 1.26.4 toolchain. Hosted validation must fail on reachable known
 vulnerabilities rather than suppressing or converting findings to a
 success-only output format. The scanner queries the public Go vulnerability
 database with module paths. It does not upload repository source code.
