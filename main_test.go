@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"errors"
+	"io"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -10,6 +12,12 @@ import (
 	twilio "github.com/twilio/twilio-go"
 	twilioclient "github.com/twilio/twilio-go/client"
 )
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (function roundTripFunc) RoundTrip(request *http.Request) (*http.Response, error) {
+	return function(request)
+}
 
 func TestConfigureTwilioClientSetsRequestTimeout(t *testing.T) {
 	client := twilio.NewRestClientWithParams(twilio.ClientParams{
@@ -26,6 +34,100 @@ func TestConfigureTwilioClientSetsRequestTimeout(t *testing.T) {
 	}
 	if baseClient.HTTPClient.Timeout != 10*time.Second {
 		t.Fatalf("expected 10 second Twilio timeout, got %s", baseClient.HTTPClient.Timeout)
+	}
+}
+
+func TestNewTwilioRestClientIgnoresUnsupportedRoutingEnvironment(t *testing.T) {
+	t.Setenv("TWILIO_EDGE", "attacker-controlled")
+	t.Setenv("TWILIO_REGION", "invalid.example")
+
+	client := newTwilioRestClient(smsConfig{
+		AccountSID: testAccountSID(),
+		AuthToken:  testAuthToken(),
+	}, http.DefaultTransport)
+
+	if client.Edge != "" || client.Region != "" {
+		t.Fatalf("expected fixed Twilio routing, got edge=%q region=%q", client.Edge, client.Region)
+	}
+}
+
+func TestSendSMSWithClientUsesOfficialEndpointAndDoesNotRetry(t *testing.T) {
+	t.Setenv("TWILIO_EDGE", "attacker-controlled")
+	t.Setenv("TWILIO_REGION", "invalid.example")
+
+	requests := 0
+	transport := roundTripFunc(func(request *http.Request) (*http.Response, error) {
+		requests++
+		if request.Method != http.MethodPost {
+			t.Fatalf("expected POST, got %s", request.Method)
+		}
+		if request.URL.Scheme != "https" || request.URL.Host != "api.twilio.com" {
+			t.Fatalf("expected official Twilio endpoint, got %s", request.URL)
+		}
+		return &http.Response{
+			StatusCode: http.StatusInternalServerError,
+			Header:     make(http.Header),
+			Body: io.NopCloser(strings.NewReader(
+				`{"code": 20001, "message": "provider failure", "more_info": "", "status": 500}`,
+			)),
+			Request: request,
+		}, nil
+	})
+
+	config := smsConfig{
+		ToPhoneNumber:   "+15558675310",
+		FromPhoneNumber: "+15558675309",
+		AccountSID:      testAccountSID(),
+		AuthToken:       testAuthToken(),
+		MessageBody:     "Webinar reminder",
+	}
+	client := newTwilioRestClient(config, transport)
+
+	if err := sendSMSWithClient(config, client); err == nil {
+		t.Fatal("expected provider failure")
+	}
+	if requests != 1 {
+		t.Fatalf("expected exactly one provider attempt, got %d", requests)
+	}
+}
+
+func TestSendSMSWithClientRejectsOversizedProviderResponse(t *testing.T) {
+	transport := roundTripFunc(func(request *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusCreated,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"body":"` + strings.Repeat("a", maxTwilioResponseBytes) + `"}`)),
+			Request:    request,
+		}, nil
+	})
+
+	config := smsConfig{
+		ToPhoneNumber:   "+15558675310",
+		FromPhoneNumber: "+15558675309",
+		AccountSID:      testAccountSID(),
+		AuthToken:       testAuthToken(),
+		MessageBody:     "Webinar reminder",
+	}
+	client := newTwilioRestClient(config, transport)
+
+	err := sendSMSWithClient(config, client)
+	if !errors.Is(err, errTwilioResponseTooLarge) {
+		t.Fatalf("expected bounded provider response error, got %v", err)
+	}
+}
+
+func TestBoundedReadCloserAllowsBodyExactlyAtLimit(t *testing.T) {
+	reader := &boundedReadCloser{
+		body:      io.NopCloser(strings.NewReader("abc")),
+		remaining: 3,
+	}
+
+	contents, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("expected exact-limit body to succeed, got %v", err)
+	}
+	if string(contents) != "abc" {
+		t.Fatalf("expected exact-limit body contents, got %q", contents)
 	}
 }
 
@@ -368,18 +470,25 @@ func TestRunSendsConfiguredMessage(t *testing.T) {
 	}
 }
 
-func TestRunWrapsSenderError(t *testing.T) {
+func TestRunRedactsAndWrapsSenderError(t *testing.T) {
+	cause := errors.New("twilio rejected request for +15558675310")
 	err := run(mapLookup(map[string]string{
 		"TO_PHONE_NUMBER":     "+15558675310",
 		"TWILIO_PHONE_NUMBER": "+15558675309",
 		"TWILIO_ACCOUNT_SID":  testAccountSID(),
 		"TWILIO_AUTH_TOKEN":   testAuthToken(),
 	}), &bytes.Buffer{}, func(smsConfig) error {
-		return errors.New("twilio rejected request")
+		return cause
 	})
 
-	if err == nil || !strings.Contains(err.Error(), "send SMS: twilio rejected request") {
-		t.Fatalf("expected wrapped sender error, got %v", err)
+	if err == nil || err.Error() != "send SMS: request failed" {
+		t.Fatalf("expected redacted sender error, got %v", err)
+	}
+	if strings.Contains(err.Error(), "twilio rejected") || strings.Contains(err.Error(), "+15558675310") {
+		t.Fatalf("sender error should not expose provider details, got %q", err)
+	}
+	if !errors.Is(err, cause) {
+		t.Fatalf("expected redacted error to unwrap to sender cause")
 	}
 }
 

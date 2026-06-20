@@ -24,6 +24,9 @@ Priority:
 
 - Preserve the simple Twilio SMS send flow
 - Keep live Twilio requests bounded by an explicit 10-second timeout
+- Keep live Twilio requests fixed to the official endpoint, single-attempt,
+  redirect-free, and bounded to 256 KiB provider responses
+- Keep redacted Twilio send errors from exposing provider details or phone numbers
 - Keep phone numbers and Twilio credentials in environment variables
 - Validate phone number shape before dry runs or real sends
 - Reject matching sender and recipient phone numbers
@@ -35,8 +38,12 @@ Priority:
 - Reject ambiguous `DRY_RUN` values instead of treating typos as real sends
 - Keep `make lint`, `make test`, `make build`, and `make check` green before
   pushing changes
-- Keep `go vet ./...` and pinned, read-only Go 1.24 hosted validation in the
-  canonical gate without contacting Twilio
+- Keep `go vet ./...` and pinned, credential-free, read-only Go 1.26.4 hosted
+  validation in the canonical gate without contacting Twilio
+- Keep pinned `govulncheck` source analysis in the canonical local and hosted
+  gate, with zero reachable known vulnerabilities
+- Keep Twilio Go v1.30.9's runtime graph on JWT v5.3.1 and reject dependency
+  rollback through the static baseline
 - Keep `scripts/check-baseline.sh` green as repository metadata and local
   hygiene evolve
 - Avoid committing account SIDs, auth tokens, API keys, or phone numbers
@@ -45,7 +52,7 @@ Priority:
 Next priorities:
 
 - Document expected Twilio account prerequisites
-- Add a fake HTTP client if Twilio request payloads need deeper unit coverage
+- Preserve fake-provider coverage as Twilio request handling evolves
 - Consider examples for Twilio trial-account verification limits
 
 Contribution rules:

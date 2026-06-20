@@ -1,10 +1,47 @@
 # Changes
 
+## 2026-06-19
+
+- Fixed outbound Twilio routing to the official API host instead of honoring
+  ambient `TWILIO_EDGE` or `TWILIO_REGION` overrides.
+- Added a 256 KiB provider-response limit and fake-provider tests proving one
+  outbound attempt, no redirects, bounded responses, and redacted failures.
+- Raised local and hosted validation to Go 1.26.4 after `govulncheck` found
+  eight reachable standard-library vulnerabilities with Go 1.26.1.
+- Updated the pinned checkout action to official v7.0.0 while preserving
+  read-only permissions and `persist-credentials: false`.
+
+## 2026-06-16
+
+- Updated the Twilio runtime graph from JWT v5.2.2 to JWT v5.3.1 while keeping
+  Twilio Go v1.30.9 and Go 1.25.11 fixed.
+- Added static dependency, documentation, and completed-plan contracts that
+  reject JWT rollback or unverifiable module-graph evidence.
+
+## 2026-06-13
+
+- Made every Make verification alias resolve Go commands and the baseline
+  script from the checkout, including absolute Makefile invocations elsewhere.
+
+## 2026-06-12
+
+- Disabled persisted checkout credentials and enforced the sole pinned
+  credential-free workflow boundary.
+- Added pinned govulncheck v1.3.0 source scanning to the canonical local and
+  hosted `make check` gate.
+- Made every Make target execute from the repository root so external-working-
+  directory verification uses the same commands.
+- Hardened the static baseline against scanner removal, floating versions,
+  duplicate or bypassed scans, incomplete plan evidence, and nonportable Make
+  wrappers.
 ## 2026-06-10
 
+- Added redacted Twilio send errors that preserve Go error unwrapping without exposing provider details.
 - Added and tested an explicit 10-second timeout on the Twilio REST client.
-- Added `go vet ./...` and pinned, read-only Go 1.24 hosted validation for the
-  canonical `make check` gate without live Twilio access.
+- Added `go vet ./...` and pinned, credential-free, read-only Go 1.25.11 hosted
+  validation for the canonical `make check` gate without live Twilio access.
+- Raised the module toolchain floor to Go 1.25.11 after `govulncheck` found
+  reachable standard-library vulnerabilities in the Twilio request path.
 - Rejected invalid UTF-8 `MESSAGE_BODY` values by name before building a
   Twilio send request.
 
