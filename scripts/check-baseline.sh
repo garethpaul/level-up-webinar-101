@@ -6,35 +6,6 @@ README="$ROOT_DIR/README.md"
 MAKEFILE="$ROOT_DIR/Makefile"
 GITIGNORE="$ROOT_DIR/.gitignore"
 DOCS_PLANS="$ROOT_DIR/docs/plans"
-EXPECTED_MAKEFILE=$(cat <<'EOF'
-ifneq ($(origin MAKEFILE_LIST),file)
-$(error MAKEFILE_LIST must not be overridden)
-endif
-override ROOT := $(shell path='$(subst ','"'"',$(MAKEFILE_LIST))'; path=$$(printf '%s\n' "$$path" | sed 's/^ //'); dirname -- "$$path")
-
-.PHONY: build check fmt lint test vuln
-
-check: lint test build vuln
-	cd "$(ROOT)" && ./scripts/check-baseline.sh
-
-lint:
-	cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"
-	cd "$(ROOT)" && go vet ./...
-
-test:
-	cd "$(ROOT)" && go mod verify
-	cd "$(ROOT)" && go test ./...
-
-build:
-	cd "$(ROOT)" && go build ./...
-
-vuln:
-	cd "$(ROOT)" && go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
-
-fmt:
-	cd "$(ROOT)" && gofmt -w *.go
-EOF
-)
 
 require_file() {
   path=$1
@@ -177,7 +148,35 @@ for evidence in \
   fi
 done
 
-if [ "$(cat "$MAKEFILE")" != "$EXPECTED_MAKEFILE" ]; then
+if ! diff -u - "$MAKEFILE" <<'EOF'
+ifneq ($(origin MAKEFILE_LIST),file)
+$(error MAKEFILE_LIST must not be overridden)
+endif
+override ROOT := $(shell path='$(subst ','"'"',$(MAKEFILE_LIST))'; path=$$(printf '%s\n' "$$path" | sed 's/^ //'); dirname -- "$$path")
+
+.PHONY: build check fmt lint test vuln
+
+check: lint test build vuln
+	cd "$(ROOT)" && ./scripts/check-baseline.sh
+
+lint:
+	cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"
+	cd "$(ROOT)" && go vet ./...
+
+test:
+	cd "$(ROOT)" && go mod verify
+	cd "$(ROOT)" && go test ./...
+
+build:
+	cd "$(ROOT)" && go build ./...
+
+vuln:
+	cd "$(ROOT)" && go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
+
+fmt:
+	cd "$(ROOT)" && gofmt -w *.go
+EOF
+then
   printf '%s\n' "Makefile must exactly preserve rooted Go, baseline, and vulnerability gates." >&2
   exit 1
 fi
