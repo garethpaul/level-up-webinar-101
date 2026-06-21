@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-06-21
+
+- Made absolute external Makefile invocations work when checkout paths contain
+  spaces or a literal apostrophe while rejecting `ROOT` and `MAKEFILE_LIST`
+  attempts to redirect verification.
+
 ## 2026-06-19
 
 - Fixed outbound Twilio routing to the official API host instead of honoring
