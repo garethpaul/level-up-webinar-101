@@ -6,29 +6,6 @@ README="$ROOT_DIR/README.md"
 MAKEFILE="$ROOT_DIR/Makefile"
 GITIGNORE="$ROOT_DIR/.gitignore"
 DOCS_PLANS="$ROOT_DIR/docs/plans"
-EXPECTED_MAKEFILE='override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-
-.PHONY: build check fmt lint test vuln
-
-check: lint test build vuln
-	cd "$(ROOT)" && ./scripts/check-baseline.sh
-
-lint:
-	cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"
-	cd "$(ROOT)" && go vet ./...
-
-test:
-	cd "$(ROOT)" && go mod verify
-	cd "$(ROOT)" && go test ./...
-
-build:
-	cd "$(ROOT)" && go build ./...
-
-vuln:
-	cd "$(ROOT)" && go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
-
-fmt:
-	cd "$(ROOT)" && gofmt -w *.go'
 
 require_file() {
   path=$1
@@ -64,6 +41,7 @@ for path in \
   "docs/plans/2026-06-12-hosted-govulncheck.md" \
   "docs/plans/2026-06-14-integrate-webinar-security-stack.md" \
   "docs/plans/2026-06-16-jwt-transitive-update.md" \
+  "docs/plans/2026-06-21-spaced-makefile-path.md" \
   "scripts/check-jwt-dependency.sh" \
   "scripts/check-go-version.sh" \
   "scripts/test-go-version.sh" \
@@ -170,10 +148,81 @@ for evidence in \
   fi
 done
 
-if [ "$(cat "$MAKEFILE")" != "$EXPECTED_MAKEFILE" ]; then
+if ! diff -u - "$MAKEFILE" <<'EOF'
+ifneq ($(origin MAKEFILE_LIST),file)
+$(error MAKEFILE_LIST must not be overridden)
+endif
+override ROOT := $(shell path='$(subst ','"'"',$(MAKEFILE_LIST))'; path=$$(printf '%s\n' "$$path" | sed 's/^ //'); dirname -- "$$path")
+
+.PHONY: build check fmt lint test vuln
+
+check: lint test build vuln
+	cd "$(ROOT)" && ./scripts/check-baseline.sh
+
+lint:
+	cd "$(ROOT)" && test -z "$$(gofmt -l *.go)"
+	cd "$(ROOT)" && go vet ./...
+
+test:
+	cd "$(ROOT)" && go mod verify
+	cd "$(ROOT)" && go test ./...
+
+build:
+	cd "$(ROOT)" && go build ./...
+
+vuln:
+	cd "$(ROOT)" && go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
+
+fmt:
+	cd "$(ROOT)" && gofmt -w *.go
+EOF
+then
   printf '%s\n' "Makefile must exactly preserve rooted Go, baseline, and vulnerability gates." >&2
   exit 1
 fi
+
+make_path_tmp=$(mktemp -d)
+make_path_checkout="$make_path_tmp/checkout with spaces 'quoted' [hostile]"
+make_path_external="$make_path_tmp/external caller"
+mkdir -p "$make_path_checkout" "$make_path_external"
+cp "$MAKEFILE" "$make_path_checkout/Makefile"
+for target in check lint test build vuln; do
+  for root_attack in none command environment; do
+    case "$root_attack" in
+      none)
+        make_path_output=$(cd "$make_path_external" && make --dry-run -f "$make_path_checkout/Makefile" "$target")
+        ;;
+      command)
+        make_path_output=$(cd "$make_path_external" && make --dry-run -f "$make_path_checkout/Makefile" ROOT=/tmp/untrusted "$target")
+        ;;
+      environment)
+        make_path_output=$(cd "$make_path_external" && ROOT=/tmp/untrusted make -e --dry-run -f "$make_path_checkout/Makefile" "$target")
+        ;;
+    esac
+    case "$make_path_output" in
+      *"$make_path_checkout"*) ;;
+      *)
+        rm -rf -- "$make_path_tmp"
+        printf '%s\n' "Make aliases must preserve a spaced checkout root." >&2
+        exit 1
+        ;;
+    esac
+    case "$make_path_output" in
+      *"/tmp/untrusted/"*)
+        rm -rf -- "$make_path_tmp"
+        printf '%s\n' "Make aliases must reject ROOT overrides." >&2
+        exit 1
+        ;;
+    esac
+  done
+done
+if (cd "$make_path_external" && make --dry-run -f "$make_path_checkout/Makefile" MAKEFILE_LIST=/tmp/untrusted check) >/dev/null 2>&1 ||
+   (cd "$make_path_external" && MAKEFILE_LIST=/tmp/untrusted make -e --dry-run -f "$make_path_checkout/Makefile" check) >/dev/null 2>&1; then
+  rm -rf -- "$make_path_tmp"
+  printf '%s\n' "Makefile must fail closed when MAKEFILE_LIST is overridden." >&2
+  exit 1
+fi
+rm -rf -- "$make_path_tmp"
 
 if grep -Eq 'govulncheck@(latest|master|main)|govulncheck[[:space:]]+\./\.\.\.' "$MAKEFILE" || \
    [ "$(grep -Fc 'golang.org/x/vuln/cmd/govulncheck@v1.3.0' "$MAKEFILE")" -ne 1 ]; then

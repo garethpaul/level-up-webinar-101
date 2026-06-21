@@ -113,7 +113,9 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
   `scripts/check-baseline.sh`.
 - The Make gates are location-independent. From another directory, pass this
   checkout's Makefile by absolute path, for example
-  `make -f /path/to/level-up-webinar-101/Makefile check`.
+  `make -f /path/to/level-up-webinar-101/Makefile check`. This remains supported
+  when checkout paths contain spaces or a literal apostrophe. `ROOT` and
+  `MAKEFILE_LIST` overrides cannot redirect verification into another tree.
 - `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, fixed Twilio routing, exactly-one provider attempts, bounded provider responses, sender success, and sender error wrapping without contacting Twilio.
 - Pinned, credential-free `ubuntu-24.04` GitHub Actions runs `make check` with
   patched Go `1.26.4` and read-only repository permissions.
