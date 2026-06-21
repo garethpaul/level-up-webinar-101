@@ -9,7 +9,8 @@ absolute `make -f` workflow failed when the checkout path contained spaces.
 
 ## Change
 
-1. Derive the root from the raw Makefile path with shell-safe quote handling.
+1. Derive the root from the raw Makefile path with shell-safe quote handling
+   and POSIX `printf`/`sed` normalization.
 2. Preserve `override ROOT` and reject command-line or environment replacement
    of `MAKEFILE_LIST`.
 3. Dry-run every verification alias from an unrelated directory against a path

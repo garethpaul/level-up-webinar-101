@@ -1,7 +1,7 @@
 ifneq ($(origin MAKEFILE_LIST),file)
 $(error MAKEFILE_LIST must not be overridden)
 endif
-override ROOT := $(shell path='$(subst ','"'"',$(MAKEFILE_LIST))'; path=$${path\# }; dirname -- "$$path")
+override ROOT := $(shell path='$(subst ','"'"',$(MAKEFILE_LIST))'; path=$$(printf '%s\n' "$$path" | sed 's/^ //'); dirname -- "$$path")
 
 .PHONY: build check fmt lint test vuln
 
