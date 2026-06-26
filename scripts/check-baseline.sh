@@ -28,6 +28,7 @@ for path in \
   "go.sum" \
   "main.go" \
   "main_test.go" \
+  "security_mutation_test.go" \
   "docs/plans/2026-06-08-twilio-sms-baseline.md" \
   "docs/plans/2026-06-09-make-gate-targets.md" \
   "docs/plans/2026-06-09-scripted-baseline-check.md" \
@@ -42,6 +43,7 @@ for path in \
   "docs/plans/2026-06-14-integrate-webinar-security-stack.md" \
   "docs/plans/2026-06-16-jwt-transitive-update.md" \
   "docs/plans/2026-06-21-spaced-makefile-path.md" \
+  "docs/plans/2026-06-26-twilio-response-header-limit.md" \
   "scripts/check-jwt-dependency.sh" \
   "scripts/check-go-version.sh" \
   "scripts/test-go-version.sh" \
@@ -74,6 +76,10 @@ fi
 
 for provider_contract in \
   'const maxTwilioResponseBytes = 256 * 1024' \
+  'const maxTwilioResponseHeaderBytes = 64 * 1024' \
+  'transport.MaxResponseHeaderBytes = maxTwilioResponseHeaderBytes' \
+  'newTwilioRestClient(config, newTwilioTransport())' \
+  'TestNewTwilioTransportBoundsResponseHeadersWithoutMutatingDefault' \
   'client.Edge = ""' \
   'client.Region = ""' \
   'return http.ErrUseLastResponse' \
@@ -82,6 +88,32 @@ for provider_contract in \
   'TestSendSMSWithClientRejectsOversizedProviderResponse'; do
   if ! grep -Fq "$provider_contract" "$ROOT_DIR/main.go" "$ROOT_DIR/main_test.go"; then
     printf '%s\n' "Twilio provider boundary must preserve: $provider_contract" >&2
+    exit 1
+  fi
+done
+
+HEADER_LIMIT_PLAN="$ROOT_DIR/docs/plans/2026-06-26-twilio-response-header-limit.md"
+for evidence in \
+  'status: completed' \
+  '28 focused tests' \
+  'five isolated hostile mutations' \
+  'make check' \
+  'external working directory'; do
+  if ! grep -Fq "$evidence" "$HEADER_LIMIT_PLAN"; then
+    printf '%s\n' "Twilio response header limit plan must record: $evidence" >&2
+    exit 1
+  fi
+done
+
+for mutation_contract in \
+  'TestProviderHeaderLimitMutations' \
+  '"header limit"' \
+  '"transport assignment"' \
+  '"real send routing"' \
+  '"regression test"' \
+  '"completed plan"'; do
+  if ! grep -Fq "$mutation_contract" "$ROOT_DIR/security_mutation_test.go"; then
+    printf '%s\n' "Provider header mutation suite must preserve: $mutation_contract" >&2
     exit 1
   fi
 done

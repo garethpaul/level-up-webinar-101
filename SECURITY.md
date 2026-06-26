@@ -41,7 +41,8 @@ Helpful reports include:
   so dependency defaults cannot introduce an unbounded request.
 - Live sends use the fixed `https://api.twilio.com` endpoint, ignore ambient
   `TWILIO_EDGE` and `TWILIO_REGION` overrides, do not follow redirects or retry
-  failed requests, and bound provider response bodies to 256 KiB.
+  failed requests, bound provider response bodies to 256 KiB, and cap provider
+  response headers at 64 KiB without mutating the global default transport.
 - This single-shot CLI has no inbound HTTP, session, CSRF, return-URL, webhook,
   SSRF, or JWT verification surface. JWT v5.3.1 is transitive Twilio SDK code.
 - Real-send Account SID validation errors should name `TWILIO_ACCOUNT_SID` rather than echoing configured values.

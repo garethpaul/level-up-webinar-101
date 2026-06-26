@@ -37,6 +37,26 @@ func TestConfigureTwilioClientSetsRequestTimeout(t *testing.T) {
 	}
 }
 
+func TestNewTwilioTransportBoundsResponseHeadersWithoutMutatingDefault(t *testing.T) {
+	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		t.Fatal("expected Go default transport")
+	}
+	originalLimit := defaultTransport.MaxResponseHeaderBytes
+
+	transport := newTwilioTransport()
+
+	if transport == defaultTransport {
+		t.Fatal("expected an isolated transport clone")
+	}
+	if transport.MaxResponseHeaderBytes != maxTwilioResponseHeaderBytes {
+		t.Fatalf("expected %d-byte response header limit, got %d", maxTwilioResponseHeaderBytes, transport.MaxResponseHeaderBytes)
+	}
+	if defaultTransport.MaxResponseHeaderBytes != originalLimit {
+		t.Fatal("default transport must not be mutated")
+	}
+}
+
 func TestNewTwilioRestClientIgnoresUnsupportedRoutingEnvironment(t *testing.T) {
 	t.Setenv("TWILIO_EDGE", "attacker-controlled")
 	t.Setenv("TWILIO_REGION", "invalid.example")

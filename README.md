@@ -77,7 +77,8 @@ The recipient and Twilio sender phone numbers must be different.
 `TWILIO_AUTH_TOKEN` should use Twilio's 32-character hexadecimal Auth Token format.
 Live sends apply an explicit 10-second Twilio request timeout before message
 creation, do not follow redirects or retry failures, ignore ambient Twilio
-edge/region overrides, and reject provider responses larger than 256 KiB.
+edge/region overrides, reject provider bodies larger than 256 KiB, and cap
+provider response headers at 64 KiB on an isolated transport clone.
 
 ```bash
 export TO_PHONE_NUMBER="+15558675310"
@@ -116,7 +117,7 @@ TO_PHONE_NUMBER="+15558675310" TWILIO_PHONE_NUMBER="+15558675309" DRY_RUN=1 go r
   `make -f /path/to/level-up-webinar-101/Makefile check`. This remains supported
   when checkout paths contain spaces or a literal apostrophe. `ROOT` and
   `MAKEFILE_LIST` overrides cannot redirect verification into another tree.
-- `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, fixed Twilio routing, exactly-one provider attempts, bounded provider responses, sender success, and sender error wrapping without contacting Twilio.
+- `go test ./...` covers missing environment variables, strict dry-run value parsing, dry-run behavior, E.164-style phone number validation, matching sender/recipient rejection, Account SID validation, Auth Token validation, custom message body handling, invalid UTF-8 message body validation, message body length validation, whitespace trimming, fixed Twilio routing, exactly-one provider attempts, bounded provider bodies and headers, sender success, and sender error wrapping without contacting Twilio.
 - Pinned, credential-free `ubuntu-24.04` GitHub Actions runs `make check` with
   patched Go `1.26.4` and read-only repository permissions.
   Hosted validation uses injected sender tests without Twilio credentials, real

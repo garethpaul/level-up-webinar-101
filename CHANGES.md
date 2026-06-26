@@ -1,5 +1,22 @@
 # Changes
 
+## 2026-06-26 15:18 PDT - P1 - Bound Twilio response headers
+
+- Summary: capped real-send provider response headers at 64 KiB before the
+  existing 256 KiB response-body guard is reached.
+- Files: added an isolated default-transport clone, focused regression, five
+  hostile mutations, completed plan, and synchronized security guidance.
+- Tests: the new transport regression failed before implementation; Go 1.26.4
+  passed gofmt, vet, module verification, all 28 focused tests, five hostile
+  mutations, build, zero govulncheck findings, root/external `make check`,
+  strict Git validation, and secret/conflict scans.
+- Findings: body limits did not constrain response headers, leaving the Go
+  transport's substantially larger default header allowance in the live path.
+- Blockers: the requested Codex branch review for PR #11 returned HTTP 401 and
+  was skipped after one attempt as instructed.
+- Next action: merge only PR #11's exact hosted-green head, verify post-merge
+  workflows, and persist the repository evidence index.
+
 ## 2026-06-21
 
 - Made absolute external Makefile invocations work when checkout paths contain
