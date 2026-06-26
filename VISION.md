@@ -25,7 +25,8 @@ Priority:
 - Preserve the simple Twilio SMS send flow
 - Keep live Twilio requests bounded by an explicit 10-second timeout
 - Keep live Twilio requests fixed to the official endpoint, single-attempt,
-  redirect-free, and bounded to 256 KiB provider responses
+  redirect-free, bounded to 256 KiB provider bodies, and capped at 64 KiB
+  provider response headers
 - Keep redacted Twilio send errors from exposing provider details or phone numbers
 - Keep phone numbers and Twilio credentials in environment variables
 - Validate phone number shape before dry runs or real sends

@@ -52,6 +52,8 @@
 - `TO_PHONE_NUMBER` and `TWILIO_PHONE_NUMBER` must not be the same value.
 - Real sends validate that `TWILIO_ACCOUNT_SID` is an `AC`-prefixed Twilio Account SID.
 - Real sends validate that `TWILIO_AUTH_TOKEN` is a 32-character hexadecimal Twilio Auth Token.
+- Preserve the isolated Twilio transport clone and its 64 KiB response-header
+  limit alongside the existing timeout, redirect, retry, and body boundaries.
 
 ## Agent workflow
 

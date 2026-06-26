@@ -18,6 +18,7 @@ import (
 const defaultMessageBody = "Hello from Golang!"
 const maxMessageBodyCharacters = 1600
 const maxTwilioResponseBytes = 256 * 1024
+const maxTwilioResponseHeaderBytes = 64 * 1024
 const twilioRequestTimeout = 10 * time.Second
 
 var errTwilioResponseTooLarge = errors.New("Twilio response exceeds size limit")
@@ -244,8 +245,14 @@ func parseDryRun(value string) (bool, error) {
 }
 
 func sendSMS(config smsConfig) error {
-	client := newTwilioRestClient(config, http.DefaultTransport)
+	client := newTwilioRestClient(config, newTwilioTransport())
 	return sendSMSWithClient(config, client)
+}
+
+func newTwilioTransport() *http.Transport {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.MaxResponseHeaderBytes = maxTwilioResponseHeaderBytes
+	return transport
 }
 
 func newTwilioRestClient(config smsConfig, transport http.RoundTripper) *twilio.RestClient {
