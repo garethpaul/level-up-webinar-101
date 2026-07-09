@@ -112,7 +112,7 @@ for workflow_value in \
   "timeout-minutes: 10" \
   "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" \
   "actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c" \
-  "go-version: \"1.25.11\"" \
+  "go-version: \"1.25.12\"" \
   "run: make check"; do
   if ! grep -Fq "$workflow_value" "$WORKFLOW"; then
     printf '%s\n' "Check workflow must keep $workflow_value" >&2
@@ -201,7 +201,7 @@ fi
 
 for module_line in \
   "module github.com/garethpaul/level-up-webinar-101" \
-  "go 1.25.11" \
+  "go 1.25.12" \
   "github.com/twilio/twilio-go v1.30.9"; do
   if ! grep -Fq "$module_line" "$ROOT_DIR/go.mod"; then
     printf '%s\n' "go.mod must keep module baseline: $module_line" >&2
@@ -211,10 +211,10 @@ done
 
 selected_go_version=$(go env GOVERSION | sed 's/^go//')
 if ! printf '%s\n' "$selected_go_version" | awk -F. '
-  $1 > 1 || ($1 == 1 && ($2 > 25 || ($2 == 25 && $3 >= 11))) { valid = 1 }
+  $1 > 1 || ($1 == 1 && ($2 > 25 || ($2 == 25 && $3 >= 12))) { valid = 1 }
   END { exit valid ? 0 : 1 }
 '; then
-  printf '%s\n' "Verification requires patched Go 1.25.11 or newer." >&2
+  printf '%s\n' "Verification requires patched Go 1.25.12 or newer." >&2
   exit 1
 fi
 

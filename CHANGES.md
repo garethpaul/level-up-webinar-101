@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-07-09
+
+- Raised the module and hosted Go toolchain floor from 1.25.11 to 1.25.12 after
+  `govulncheck` reported reachable GO-2026-5856 (`crypto/tls` Encrypted Client
+  Hello privacy leak) on the Twilio request path with Go 1.25.11.
+
 ## 2026-06-12
 
 - Added pinned govulncheck v1.3.0 source scanning to the canonical local and

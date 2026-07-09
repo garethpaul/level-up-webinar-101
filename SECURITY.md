@@ -28,7 +28,7 @@ Helpful reports include:
 - Review found external API integrations or credential-adjacent configuration; changes in those areas should receive security-focused review before merge.
 - The sample now uses `go.mod` and `go.sum` for Twilio SDK dependency metadata. Run `make check` after Go, dependency, or documentation changes.
 - The pinned Linux workflow uses read-only permissions, disables checkout
-  credential persistence, selects patched Go 1.25.11, and runs formatting,
+  credential persistence, selects patched Go 1.25.12, and runs formatting,
   `go vet`, module verification, injected sender tests, and builds without
   Twilio credentials, real phone numbers, outbound SMS requests, or live API
   calls.
@@ -50,7 +50,7 @@ Helpful reports include:
 
 The canonical `make check` gate runs
 `golang.org/x/vuln/cmd/govulncheck@v1.3.0` against all source packages on the
-pinned Go 1.25.11 toolchain. Hosted validation must fail on reachable known
+pinned Go 1.25.12 toolchain. Hosted validation must fail on reachable known
 vulnerabilities rather than suppressing or converting findings to a
 success-only output format. The scanner queries the public Go vulnerability
 database with module paths. It does not upload repository source code.
